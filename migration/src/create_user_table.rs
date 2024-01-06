@@ -21,20 +21,20 @@ impl MigrationTrait for Migration {
                     )
                     .col(
                         ColumnDef::new(Users::NickName)
-                            .string()
-                            .not_null()
+                            .string_len(50)
+                            .null()
                             .comment("用户昵称"),
                     )
                     .col(
                         ColumnDef::new(Users::Email)
-                            .string()
-                            .not_null()
+                            .string_len(50)
+                            .null()
                             .comment("用户邮箱"),
                     )
                     .col(
                         ColumnDef::new(Users::Password)
-                            .string()
-                            .not_null()
+                            .string_len(32)
+                            .null()
                             .comment("用户密码"),
                     )
                     .to_owned(),
