@@ -15,6 +15,7 @@ use listenfd::ListenFd;
 use tracing::level_filters::LevelFilter;
 use tracing::{debug, debug_span, field, info, Span};
 use tracing_actix_web::{DefaultRootSpanBuilder, RootSpan, RootSpanBuilder, TracingLogger};
+use migration::{Migrator, MigratorTrait};
 use service::sea_orm::{Database, DatabaseConnection};
 use crate::response;
 
@@ -124,6 +125,7 @@ async fn start() -> std::io::Result<()> {
         .burst_size(10)
         .finish()
         .unwrap();
+    Migrator::up(&app_state.pool, None).await.unwrap();
     let mut listened = ListenFd::from_env();
     let mut server = HttpServer::new(move || {
         App::new()

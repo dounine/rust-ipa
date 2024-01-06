@@ -1,12 +1,14 @@
-mod create_user_table;
+pub use sea_orm_migration::prelude::*;
 
-use sea_orm_migration::{async_trait, MigrationTrait, MigratorTrait};
+mod create_user_table;
 
 pub struct Migrator;
 
 #[async_trait::async_trait]
 impl MigratorTrait for Migrator {
     fn migrations() -> Vec<Box<dyn MigrationTrait>> {
-        vec![Box::new(create_user_table::Migration)]
+        vec![
+            Box::new(create_user_table::Migration)
+        ]
     }
 }
