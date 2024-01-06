@@ -1,4 +1,7 @@
 use sea_orm_migration::prelude::*;
+use crate::sea_orm::{ActiveModelTrait, NotSet, Set, TransactionTrait};
+use ::entity::user::ActiveModel;
+use entity::user::{UserPlatform, UserStatus, UserType};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -96,7 +99,24 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await
+            ).await?;
+        let conn = manager.get_connection();
+        let tx = conn.begin().await?;
+        ActiveModel {
+            id: Set(1),
+            nick_name: Set(Some("lake".to_owned())),
+            user_name: Set(Some("lake".to_owned())),
+            channel_code: Set("ipa.com".to_owned()),
+            ip: Set("127.0.0.1".to_owned()),
+            status: Set(UserStatus::Normal),
+            platform: Set(UserPlatform::Email),
+            user_type: Set(UserType::User),
+            ..Default::default()
+        }
+            .insert(conn)
+            .await?;
+        tx.commit().await?;
+        Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
