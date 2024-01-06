@@ -1,5 +1,5 @@
 use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{App, HttpServer};
+use actix_web::{App, get, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Service;
 use actix_web::HttpMessage;
 use actix_web::http::header::{HeaderName, HeaderValue};
@@ -79,6 +79,7 @@ async fn start() -> std::io::Result<()> {
             .app_data(app_state.clone())//global state
             .wrap(TracingLogger::<DomainRootSpanBuilder>::new())
             .configure(init_router)
+            .service(home)
     })
         .workers(1);
     let server_url = format!("{}:{}", args.host, args.port);
@@ -90,6 +91,13 @@ async fn start() -> std::io::Result<()> {
     info!("Starting server at {}",server_url);
     server.run().await?;
     Ok(())
+}
+
+#[get("/")]
+async fn home() -> impl Responder {
+    let time = chrono::Local::now().naive_local().format("%Y-%m-%d %H:%M:%S").to_string();
+    let content = format!("hello php!!!\n{}",time);
+    HttpResponse::Ok().body(content)
 }
 
 fn init_router(cfg: &mut ServiceConfig) {
