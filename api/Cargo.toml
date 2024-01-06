@@ -1,0 +1,27 @@
+[package]
+name = "api"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+entity = { path = "../entity" }
+service = { path = "../service" }
+migration = { path = "../migration" }
+actix = "0.13.1"
+actix-web = "4.0.0-beta.10"
+actix-cors = "0.6.5"
+actix-governor = "0.5.0"
+dotenvy = "0.15.7"
+serde = "1.0.195"
+serde_json = "1.0.80"
+tracing-subscriber = "0.3.18"
+clap = { version = "4.4.11", features = ["derive"] }
+tracing = "0.1.40"
+tracing-actix-web = "0.7.9"
+tracing-appender = "0.2.3"
+listenfd = "1.0.1"
+cached = "0.47.0"
+jsonwebtoken = "9.2.0"
+thiserror = "1.0.56"

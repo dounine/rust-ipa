@@ -1,0 +1,21 @@
+[package]
+name = "rust-ipa"
+version = "0.1.0"
+edition = "2021"
+authors = ["dounine <amwoqmgo@mail.com>"]
+description = "ipa download for rust web"
+repository = "https://github.com/dounine/rust-ipa"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+
+[workspace]
+members = [
+    ".",
+    "api",
+    "entity",
+    "service",
+    "migration"
+]
+[dependencies]
+api = { path = "api" }
