@@ -13,7 +13,7 @@ use actix_web::http::header::{HeaderName, HeaderValue};
 use clap::Parser;
 use listenfd::ListenFd;
 use tracing::level_filters::LevelFilter;
-use tracing::{debug, debug_span, field, Span};
+use tracing::{debug, debug_span, field, info, Span};
 use tracing_actix_web::{DefaultRootSpanBuilder, RootSpan, RootSpanBuilder, TracingLogger};
 use service::sea_orm::{Database, DatabaseConnection};
 use crate::response;
@@ -153,7 +153,8 @@ async fn start() -> std::io::Result<()> {
         Some(listener) => server.listen(listener)?,
         None => server.bind(&server_url)?,
     };
-    println!("Starting server at {server_url}");
+    let server_url = format!("http://{:?}", server.addrs().iter().next().unwrap());
+    info!("Starting server at {}",server_url);
     server.run().await?;
     Ok(())
 }
