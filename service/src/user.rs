@@ -3,12 +3,12 @@ use ::entity::user::Entity;
 use ::entity::user::ActiveModel;
 use ::entity::user;
 use sea_orm::*;
-use tracing::{error, instrument};
+use tracing::instrument;
 
 #[instrument(skip(conn))]
 pub async fn create_user(
     conn: &DbConn,
-    form_data: user::Model,
+    form_data: Model,
 ) -> Result<ActiveModel, DbErr> {
     ActiveModel {
         nick_name: Set(form_data.nick_name.to_owned()),
@@ -37,6 +37,6 @@ pub async fn list_user(
 }
 
 #[instrument(skip(db))]
-pub async fn find_user_by_id(db: &DbConn, id: i32) -> Result<Option<user::Model>, DbErr> {
+pub async fn find_user_by_id(db: &DbConn, id: i32) -> Result<Option<Model>, DbErr> {
     Entity::find_by_id(id).one(db).await
 }
