@@ -26,6 +26,12 @@ impl MigrationTrait for Migration {
                             .comment("用户昵称"),
                     )
                     .col(
+                        ColumnDef::new(Users::UserName)
+                            .string_len(50)
+                            .null()
+                            .comment("用户名"),
+                    )
+                    .col(
                         ColumnDef::new(Users::Email)
                             .string_len(50)
                             .null()
@@ -36,6 +42,58 @@ impl MigrationTrait for Migration {
                             .string_len(32)
                             .null()
                             .comment("用户密码"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::ChannelCode)
+                            .string_len(50)
+                            .not_null()
+                            .comment("来源渠道"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Ip)
+                            .string_len(15)
+                            .null()
+                            .comment("用户IP"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Uid)
+                            .string_len(50)
+                            .null()
+                            .comment("用户唯一标识"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Avatar)
+                            .text()
+                            .null()
+                            .comment("用户头像"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Status)
+                            .tiny_integer()
+                            .not_null()
+                            .default(0)
+                            .comment("用户状态"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::Platform)
+                            .tiny_integer()
+                            .not_null()
+                            .default(0)
+                            .comment("用户平台"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::UserType)
+                            .tiny_integer()
+                            .not_null()
+                            .default(0)
+                            .comment("用户类型"),
+                    )
+                    .col(
+                        ColumnDef::new(Users::CreatedAt)
+                            .timestamp()
+                            .not_null()
+                            .extra("DEFAULT CURRENT_TIMESTAMP")
+                            .comment("创建时间"),
                     )
                     .to_owned(),
             ).await
@@ -53,6 +111,15 @@ enum Users {
     Table,
     Id,
     NickName,
+    UserName,
     Email,
     Password,
+    ChannelCode,
+    Ip,
+    Uid,
+    Avatar,
+    Status,
+    Platform,
+    UserType,
+    CreatedAt,
 }

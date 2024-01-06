@@ -36,17 +36,23 @@ async fn start() -> std::io::Result<()> {
         .with_level(true)
         .with_target(true);
 
-    let sub = tracing_subscriber::fmt()
-        .with_max_level(args.log)
-        .with_line_number(true)
-        .event_format(format);
-    if args.release {
-        sub.with_writer(non_blocking) //正式环境使用
-            .with_ansi(false)
-            .init();
-    } else {
-        sub.init();
-    }
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .with_test_writer()
+        .init();
+
+
+    // let sub = tracing_subscriber::fmt()
+    //     .with_max_level(args.log)
+    //     .with_line_number(true)
+    //     .event_format(format);
+    // if args.release {
+    //     sub.with_writer(non_blocking) //正式环境使用
+    //         .with_ansi(false)
+    //         .init();
+    // } else {
+    //     sub.init();
+    // }
     dotenvy::dotenv().ok();
     let app_state = actix_web::web::Data::new(AppState::new().await);
     let governor_conf = GovernorConfigBuilder::default()
@@ -55,7 +61,7 @@ async fn start() -> std::io::Result<()> {
         .burst_size(10)
         .finish()
         .unwrap();
-    Migrator::up(&app_state.pool, None).await.unwrap();
+    Migrator::up(&app_state.conn, None).await.unwrap();
     let mut listened = ListenFd::from_env();
     let mut server = HttpServer::new(move || {
         App::new()

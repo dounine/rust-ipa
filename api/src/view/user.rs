@@ -12,7 +12,7 @@ use crate::view::base::PageOptions;
 async fn user_list(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, MyError> {
     debug!("进去store查询数据中...");
     let page = page.format();
-    service::user::list_user(&state.pool, page.offset, page.limit)
+    service::user::list_user(&state.conn, page.offset, page.limit)
         .await
         .map(|(l, total)| list(l, total))
         .map(|users| HttpResponse::Ok().json(users))
