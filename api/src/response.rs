@@ -1,7 +1,6 @@
 use actix_web::body::BoxBody;
-use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
+use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
-use service::sea_orm::DbErr;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Response<T> {
@@ -15,7 +14,7 @@ pub struct Response<T> {
 #[derive(Serialize, Debug)]
 pub struct ListData<T> {
     pub list: Vec<T>,
-    pub total: i64,
+    pub total: u64,
 }
 
 pub fn ok<T>(data: T) -> Response<T> {
@@ -34,7 +33,7 @@ pub fn ok_empty() -> Response<String> {
     }
 }
 
-pub fn _list<T>(list: Vec<T>, total: i64) -> Response<ListData<T>> {
+pub fn list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
     Response {
         ok: true,
         err: None,
@@ -50,20 +49,6 @@ pub fn fail(msg: String) -> Response<String> {
         ok: false,
         err: Some(msg),
         data: None,
-    }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum MyError {
-    #[error("{0}")]
-    Msg(String),
-    #[error("DbError: {0}")]
-    DbError(#[from] DbErr),
-}
-
-impl ResponseError for MyError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponse::Ok().json(fail(self.to_string()))
     }
 }
 
