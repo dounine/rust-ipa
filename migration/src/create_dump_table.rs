@@ -19,7 +19,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .primary_key(
                         Index::create()
-                            .name("pk-dump_appid_country_version")
+                            .name("pk-dump")
                             .col(Dumps::AppId)
                             .col(Dumps::Country)
                             .col(Dumps::Version)

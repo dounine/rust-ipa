@@ -18,7 +18,7 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .primary_key(
                         Index::create()
-                            .name("pk-app_version_appid_country_version")
+                            .name("pk-app_version")
                             .col(AppVersions::AppId)
                             .col(AppVersions::Country)
                             .col(AppVersions::Version)
