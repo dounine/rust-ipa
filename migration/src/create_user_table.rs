@@ -1,7 +1,9 @@
 use sea_orm_migration::prelude::*;
-use crate::sea_orm::{ActiveModelTrait, NotSet, Set, TransactionTrait};
-use ::entity::user::ActiveModel;
+
 use entity::user::{UserPlatform, UserStatus, UserType};
+use entity::{User, UserActiveModel};
+
+use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -12,7 +14,7 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
-                    .table(Users::Table)
+                    .table(User.table_ref())
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Users::Id)
@@ -102,7 +104,7 @@ impl MigrationTrait for Migration {
             ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
-        ActiveModel {
+        UserActiveModel {
             id: Set(1),
             nick_name: Set(Some("lake".to_owned())),
             user_name: Set(Some("lake".to_owned())),
@@ -121,14 +123,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Users::Table).to_owned())
+            .drop_table(Table::drop().table(User.table_ref()).to_owned())
             .await
     }
 }
 
 #[derive(DeriveIden)]
 enum Users {
-    Table,
     Id,
     NickName,
     UserName,

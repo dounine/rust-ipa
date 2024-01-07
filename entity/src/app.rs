@@ -1,0 +1,46 @@
+use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[sea_orm(rs_type = "String", db_type = "String(Some(10))")]
+pub enum AppCountry {
+    #[sea_orm(string_value = "cn")]
+    Cn,
+    #[sea_orm(string_value = "us")]
+    Us,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
+pub enum AppPlatform {
+    Signer = 0,
+    TrollStore = 1,
+    Cydia = 2,
+}
+
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq)]
+#[sea_orm(table_name = "apps")]
+pub struct Model {
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub app_id: String,
+    #[sea_orm(primary_key, auto_increment = false)]
+    pub country: AppCountry,
+    pub name: String,
+    pub origin_name: String,
+    pub bundle_id: String,
+    pub des: String,
+    #[sea_orm(column_type = "Text")]
+    pub icon: String,
+    pub platform: AppPlatform,
+    pub price: i32,
+    pub genres: String,
+    pub single: bool,
+    pub created_at: DateTime,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {}
+
+impl ActiveModelBehavior for ActiveModel {}

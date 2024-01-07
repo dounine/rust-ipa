@@ -1,16 +1,16 @@
-use ::entity::user::Model;
-use ::entity::user::Entity;
-use ::entity::user::ActiveModel;
-use ::entity::user;
+use ::entity::UserColumn;
+use ::entity::UserModel;
+use ::entity::UserActiveModel;
+use ::entity::User;
 use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
 pub async fn create_user(
     conn: &DbConn,
-    form_data: Model,
-) -> Result<ActiveModel, DbErr> {
-    ActiveModel {
+    form_data: UserModel,
+) -> Result<UserActiveModel, DbErr> {
+    UserActiveModel {
         nick_name: Set(form_data.nick_name.to_owned()),
         email: Set(form_data.email.to_owned()),
         password: Set(form_data.password.to_owned()),
@@ -25,9 +25,9 @@ pub async fn list_user(
     conn: &DbConn,
     offset: u64,
     limit: u64,
-) -> Result<(Vec<Model>, u64), DbErr> {
-    let paginator = Entity::find()
-        .order_by_desc(user::Column::Id)
+) -> Result<(Vec<UserModel>, u64), DbErr> {
+    let paginator = User::find()
+        .order_by_desc(UserColumn::Id)
         .paginate(conn, limit);
     let num_pages = paginator.num_pages().await?;
     paginator
@@ -37,6 +37,6 @@ pub async fn list_user(
 }
 
 #[instrument(skip(db))]
-pub async fn find_user_by_id(db: &DbConn, id: i32) -> Result<Option<Model>, DbErr> {
-    Entity::find_by_id(id).one(db).await
+pub async fn find_user_by_id(db: &DbConn, id: i32) -> Result<Option<UserModel>, DbErr> {
+    User::find_by_id(id).one(db).await
 }

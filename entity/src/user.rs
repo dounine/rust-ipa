@@ -5,36 +5,27 @@ use serde::{Deserialize, Deserializer, Serialize};
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum UserStatus {
-    #[sea_orm(num_value = 0)]
-    Normal,
-    #[sea_orm(num_value = 1)]
-    Disable,
+    Normal = 0,
+    Disable = 1,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum UserType {
-    #[sea_orm(num_value = 0)]
-    User,
-    #[sea_orm(num_value = 1)]
-    Admin,
-    #[sea_orm(num_value = 2)]
-    Guest,
+    User = 0,
+    Admin = 1,
+    Guest = 2,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum UserPlatform {
-    #[sea_orm(num_value = 0)]
-    Email,
-    #[sea_orm(num_value = 1)]
-    Wechat,
-    #[sea_orm(num_value = 2)]
-    QQ,
-    #[sea_orm(num_value = 3)]
-    Username,
+    Email = 0,
+    Wechat = 1,
+    QQ = 2,
+    Username = 3,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Deserialize, Serialize)]
@@ -60,6 +51,7 @@ pub struct Model {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub uid: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[sea_orm(column_type = "Text")]
     pub avatar: Option<String>,
     pub status: UserStatus,
     pub platform: UserPlatform,
