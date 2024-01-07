@@ -6,21 +6,24 @@ use crate::app::AppCountry;
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum DumpStatus {
-    Waiting = 0,
     //等待中
-    Dumping = 1,
+    Waiting = 0,
     //提取中
-    Done = 2,
+    Dumping = 1,
     //提取完成
-    UnDump = 3,
+    Done = 2,
     //不可提取
-    Check = 4,
+    UnDump = 3,
     //越狱检测
-    Pause = 5,
+    Check = 4,
     //暂停
-    Old = 6,
+    Pause = 5,
     //版本过旧
-    Pay = 7,//付费应用
+    Old = 6,
+    //付费应用
+    Pay = 7,
+    //下架应用
+    Off = 8,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
