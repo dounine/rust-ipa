@@ -16,8 +16,10 @@ pub enum AppCountry {
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum AppPlatform {
     Signer = 0,
+    // 自签ipa
     TrollStore = 1,
-    Cydia = 2,
+    //巨魔
+    Cydia = 2,//越狱
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq)]
