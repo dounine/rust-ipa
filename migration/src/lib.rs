@@ -5,6 +5,7 @@ mod create_user_table;
 mod create_app_table;
 mod create_pay_table;
 mod create_pay_record_table;
+mod create_app_version_table;
 
 pub struct Migrator;
 
@@ -16,6 +17,7 @@ impl MigratorTrait for Migrator {
             Box::new(create_app_table::Migration),
             Box::new(create_pay_table::Migration),
             Box::new(create_pay_record_table::Migration),
+            Box::new(create_app_version_table::Migration),
         ]
     }
 }
