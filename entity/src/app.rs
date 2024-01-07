@@ -23,7 +23,7 @@ pub enum AppPlatform {
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq)]
-#[sea_orm(table_name = "apps")]
+#[sea_orm(table_name = "app")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub app_id: String,

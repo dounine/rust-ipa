@@ -1,4 +1,13 @@
 use sea_orm::entity::prelude::*;
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+#[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
+pub enum PayPlatform {
+    Weixin = 0,
+    Alipay = 1,
+}
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "pay")]
@@ -10,8 +19,8 @@ pub struct Model {
     pub coin: i32,
     pub trade_no: Option<String>,
     pub payed: bool,
-    pub platform: i16,
-    pub pay_time: DateTime,
+    pub platform: PayPlatform,
+    pub payed_time: Option<DateTime>,
     pub created_at: DateTime,
 }
 

@@ -3,6 +3,7 @@ pub use sea_orm_migration::prelude::*;
 mod create_user_table;
 
 mod create_app_table;
+mod create_pay_table;
 
 pub struct Migrator;
 
@@ -12,6 +13,7 @@ impl MigratorTrait for Migrator {
         vec![
             Box::new(create_user_table::Migration),
             Box::new(create_app_table::Migration),
+            Box::new(create_pay_table::Migration),
         ]
     }
 }
