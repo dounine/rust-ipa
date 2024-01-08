@@ -84,6 +84,26 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(AppVersion.table_ref())
+                    .name("idx-app-created_at")
+                    .col(AppVersions::CreatedAt)
+                    .to_owned(),
+            ).await?;
+        //AppId+Country 联合索引
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(AppVersion.table_ref())
+                    .name("idx-app-app_id_country")
+                    .col(AppVersions::AppId)
+                    .col(AppVersions::Country)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         AppVersionActiveModel {
@@ -105,7 +125,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(AppVersion.table_ref()).to_owned())
+            .drop_index(Index::drop().if_exists().table(AppVersion.table_ref()).name("idx-app-created_at").to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().if_exists().table(AppVersion.table_ref()).name("idx-app-app_id_country").to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().if_exists().table(AppVersion.table_ref()).to_owned())
             .await
     }
 }

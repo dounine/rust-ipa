@@ -102,6 +102,24 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(User.table_ref())
+                    .name("idx-user-user_name")
+                    .col(Users::UserName)
+                    .to_owned(),
+            ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(User.table_ref())
+                    .name("idx-user-email")
+                    .col(Users::Email)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         UserActiveModel {
@@ -123,7 +141,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(User.table_ref()).to_owned())
+            .drop_index(Index::drop().if_exists().table(User.table_ref()).name("idx-user-user_name").to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().if_exists().table(User.table_ref()).name("idx-user-email").to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().if_exists().table(User.table_ref()).to_owned())
             .await
     }
 }

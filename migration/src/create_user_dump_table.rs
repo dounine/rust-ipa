@@ -57,6 +57,24 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(UserDump.table_ref())
+                    .name("idx-user_dump-user_id")
+                    .col(UserDumps::UserId)
+                    .to_owned(),
+            ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(UserDump.table_ref())
+                    .name("idx-user_dump-created_at")
+                    .col(UserDumps::CreatedAt)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         UserDumpActiveModel {
@@ -74,7 +92,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(UserDump.table_ref()).to_owned())
+            .drop_index(Index::drop().if_exists().table(UserDump.table_ref()).name("idx-user_dump-user_id").to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().if_exists().table(UserDump.table_ref()).name("idx-user_dump-created_at").to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().if_exists().table(UserDump.table_ref()).to_owned())
             .await
     }
 }

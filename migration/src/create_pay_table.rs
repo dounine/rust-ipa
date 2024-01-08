@@ -78,6 +78,15 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(Pay.table_ref())
+                    .name("idx-pay-created_at")
+                    .col(Pays::CreatedAt)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayActiveModel {
@@ -98,7 +107,10 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(Pay.table_ref()).to_owned())
+            .drop_index(Index::drop().if_exists().table(Pay.table_ref()).name("idx-pay-created_at").to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().if_exists().table(Pay.table_ref()).to_owned())
             .await
     }
 }

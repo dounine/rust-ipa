@@ -58,6 +58,24 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(PayRecord.table_ref())
+                    .name("idx-pay_record-user_id")
+                    .col(PayRecords::UserId)
+                    .to_owned(),
+            ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(PayRecord.table_ref())
+                    .name("idx-pay_record-created_at")
+                    .col(PayRecords::CreatedAt)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayRecordActiveModel {
@@ -76,7 +94,13 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(Table::drop().table(PayRecord.table_ref()).to_owned())
+            .drop_index(Index::drop().if_exists().table(PayRecord.table_ref()).name("idx-pay_record-user_id").to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().if_exists().table(PayRecord.table_ref()).name("idx-pay_record-created_at").to_owned())
+            .await?;
+        manager
+            .drop_table(Table::drop().if_exists().table(PayRecord.table_ref()).to_owned())
             .await
     }
 }
