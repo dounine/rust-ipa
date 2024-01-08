@@ -19,6 +19,13 @@ pub struct Model {
     pub created_at: DateTime,
 }
 
+pub struct VersionInfo {
+    pub country: AppCountry,
+    pub app_id: String,
+    pub version: String,
+    pub size: i64,
+}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 
