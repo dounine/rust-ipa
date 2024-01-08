@@ -1,4 +1,5 @@
 use sea_orm::entity::prelude::*;
+use sea_orm::FromQueryResult;
 use crate::app::AppCountry;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
@@ -17,6 +18,14 @@ pub struct Model {
     #[sea_orm(column_type = "Text")]
     pub download_url: String,
     pub created_at: DateTime,
+}
+
+#[derive(FromQueryResult)]
+pub struct NewModel {
+    pub app_id: String,
+    pub country: AppCountry,
+    pub version: String,
+    pub size: i64,
 }
 
 pub struct VersionInfo {
