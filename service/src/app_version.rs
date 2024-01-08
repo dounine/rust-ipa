@@ -1,34 +1,23 @@
 use std::fmt::Debug;
 use ::entity::app_version::NewModel;
 use ::entity::app::AppCountry;
-use ::entity::AppVersionColumn;
-use ::entity::AppVersionModel;
-use ::entity::AppVersionActiveModel;
 use ::entity::AppVersion;
 use sea_orm::*;
-use sea_orm::sea_query::ArrayType;
-use sea_orm::sea_query::ArrayType::String;
-use sea_orm::sea_query::TableRef::SubQuery;
 use tracing::instrument;
-
-struct AppIds(Vec<String>);
-
-impl From<AppIds> for Value {
-    fn from(value: AppIds) -> Self {
-        Value::Array(ArrayType::String, value.0.into_iter().collect())
-    }
-}
 
 #[instrument(skip(conn))]
 pub async fn infos(
     conn: &DbConn,
-    country: &AppCountry,
-    app_ids: &Vec<String>,
+    country: AppCountry,
+    app_ids: Vec<String>,
 ) -> Result<Vec<NewModel>, DbErr> {
+    let arr_size = "ARRAY [".len();
+    let app_ids = Value::from(app_ids).to_string();
+    let app_ids = &app_ids[arr_size..app_ids.len() - 1];//ARRAY ['1','2'] => '1','2'
     AppVersion::find()
         .from_raw_sql(Statement::from_sql_and_values(
             DatabaseBackend::Postgres,
-            r#"
+            format!(r#"
              SELECT
                 a.country,
                 a.app_id,
@@ -52,10 +41,10 @@ pub async fn infos(
                 ) AS size
             FROM app_version AS a
             WHERE
-                a.country = $1 AND app_id IN ($2)
+                a.country = $1 AND app_id IN ({})
             GROUP BY a.country, a.app_id
-            "#,
-            [country.clone().into(), AppIds(app_ids.clone()).into()],
+            "#, app_ids),
+            [country.into()],
         ))
         .into_model::<NewModel>()
         .all(conn)
@@ -67,8 +56,8 @@ mod tests {
     use std::env;
     use std::time::Duration;
     use entity::app::AppCountry;
-    use sea_orm::{ConnectOptions, Database};
-    use tracing::{info, log};
+    use sea_orm::{ConnectOptions, Database, Value};
+    use tracing::{debug, info, log};
 
     #[tokio::test]
     async fn test_infos() {
@@ -81,7 +70,9 @@ mod tests {
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
         let conn = Database::connect(database_url).await.expect("Cannot connect to database");
         let app_ids = vec!["1".to_owned(), "2".to_owned()];
-        let lists = super::infos(&conn, &AppCountry::Cn, &app_ids).await.unwrap();
+        // let s: Value = app_ids.into();
+        // debug!("sql: {}",s)
+        let lists = super::infos(&conn, AppCountry::Cn, app_ids).await.unwrap();
         assert_eq!(lists.len(), 1);
     }
 }
