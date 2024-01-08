@@ -1,6 +1,6 @@
 use actix_web::{HttpResponse, ResponseError};
 use migration::DbErr;
-use crate::response::fail;
+use crate::response::resp_fail;
 
 #[derive(thiserror::Error, Debug)]
 pub enum MyError {
@@ -12,6 +12,6 @@ pub enum MyError {
 
 impl ResponseError for MyError {
     fn error_response(&self) -> HttpResponse {
-        HttpResponse::Ok().json(fail(self.to_string()))
+        HttpResponse::Ok().json(resp_fail(self.to_string()))
     }
 }

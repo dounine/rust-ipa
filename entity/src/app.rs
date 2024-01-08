@@ -15,10 +15,13 @@ pub enum AppCountry {
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum AppPlatform {
+    #[sea_orm(num_value = 0)]
     Signer = 0,
     // 自签ipa
+    #[sea_orm(num_value = 1)]
     TrollStore = 1,
     //巨魔
+    #[sea_orm(num_value = 2)]
     Cydia = 2,//越狱
 }
 

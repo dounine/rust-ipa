@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use ::entity::app::{AppCountry, AppPlatform};
 use ::entity::AppColumn;
 use ::entity::AppModel;
@@ -28,6 +29,26 @@ pub async fn create(
         .save(conn)
         .await
         .map(|_| ())
+}
+
+#[instrument(skip(conn))]
+pub async fn search_by_name<S>(
+    conn: &DbConn,
+    country: &AppCountry,
+    name: S,
+) -> Result<Vec<AppModel>, DbErr>
+    where S: AsRef<str> + Debug
+{
+    let name = name.as_ref();
+    App::find()
+        .filter(AppColumn::Country.eq(country.clone()).and(
+            AppColumn::Name.eq(name)
+                .or(AppColumn::Name.contains(name))
+                .or(AppColumn::AppId.eq(name)),
+        ))
+        .limit(3)
+        .all(conn)
+        .await
 }
 
 #[instrument(skip(conn))]

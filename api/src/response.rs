@@ -17,7 +17,7 @@ pub struct ListData<T> {
     pub total: u64,
 }
 
-pub fn ok<T>(data: T) -> Response<T> {
+pub fn resp_ok<T>(data: T) -> Response<T> {
     Response {
         ok: true,
         err: None,
@@ -25,7 +25,7 @@ pub fn ok<T>(data: T) -> Response<T> {
     }
 }
 
-pub fn ok_empty() -> Response<String> {
+pub fn resp_ok_empty() -> Response<String> {
     Response {
         ok: true,
         err: None,
@@ -33,7 +33,7 @@ pub fn ok_empty() -> Response<String> {
     }
 }
 
-pub fn list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
+pub fn resp_list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
     Response {
         ok: true,
         err: None,
@@ -44,7 +44,7 @@ pub fn list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
     }
 }
 
-pub fn fail(msg: String) -> Response<String> {
+pub fn resp_fail(msg: String) -> Response<String> {
     Response {
         ok: false,
         err: Some(msg),

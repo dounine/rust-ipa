@@ -1,15 +1,17 @@
 use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{App, get, HttpResponse, HttpServer, Responder};
+use actix_web::{App, get, HttpRequest, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Service;
+use actix_web::error::QueryPayloadError;
 use actix_web::HttpMessage;
 use actix_web::http::header::{HeaderName, HeaderValue};
-use actix_web::web::ServiceConfig;
+use actix_web::web::{PathConfig, QueryConfig, ServiceConfig};
 use clap::Parser;
 use listenfd::ListenFd;
 use tracing::level_filters::LevelFilter;
 use tracing::{info};
 use tracing_actix_web::{RootSpan, TracingLogger};
 use migration::{Migrator, MigratorTrait};
+use crate::error::MyError;
 use crate::limit::RequestLimit;
 use crate::span::DomainRootSpanBuilder;
 use crate::state::AppState;
@@ -77,6 +79,12 @@ async fn start() -> std::io::Result<()> {
             .wrap(Governor::new(&governor_conf))
             .app_data(actix_web::web::JsonConfig::default().limit(4096))//json body limit 4kb
             .app_data(app_state.clone())//global state
+            .app_data(QueryConfig::default().error_handler(|err, _req| {
+                MyError::Msg(err.to_string()).into()
+            }))
+            .app_data(PathConfig::default().error_handler(|err, _req| {
+                MyError::Msg(err.to_string()).into()
+            }))
             .wrap(TracingLogger::<DomainRootSpanBuilder>::new())
             .configure(init_router)
             .service(home)
@@ -96,7 +104,7 @@ async fn start() -> std::io::Result<()> {
 #[get("/")]
 async fn home() -> impl Responder {
     let time = chrono::Local::now().naive_local().format("%Y-%m-%d %H:%M:%S").to_string();
-    let content = format!("hello php!!!\n{}",time);
+    let content = format!("hello php!!!\n{}", time);
     HttpResponse::Ok().body(content)
 }
 

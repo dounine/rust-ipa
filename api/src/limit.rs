@@ -34,6 +34,6 @@ impl KeyExtractor for RequestLimit {
             .as_millis();
         response
             .status(StatusCode::OK)
-            .json(response::fail(format!("Too many requests, retry in {} millis", wait_time)))
+            .json(response::resp_fail(format!("Too many requests, retry in {} millis", wait_time)))
     }
 }

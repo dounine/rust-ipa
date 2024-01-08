@@ -98,6 +98,24 @@ impl MigrationTrait for Migration {
                     )
                     .to_owned(),
             ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx-app-name")
+                    .table(App.table_ref())
+                    .col(Apps::Name)
+                    .to_owned(),
+            ).await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .name("idx-app-app_id")
+                    .table(App.table_ref())
+                    .col(Apps::AppId)
+                    .to_owned(),
+            ).await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         AppActiveModel {
@@ -121,6 +139,12 @@ impl MigrationTrait for Migration {
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        manager
+            .drop_index(Index::drop().if_exists().name("idx-app-name").table(App.table_ref()).to_owned())
+            .await?;
+        manager
+            .drop_index(Index::drop().if_exists().name("idx-app-app_id").table(App.table_ref()).to_owned())
+            .await?;
         manager
             .drop_table(Table::drop().table(App.table_ref()).to_owned())
             .await

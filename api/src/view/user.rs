@@ -3,7 +3,7 @@ use actix_web::web::{Data, Path, Query, scope, ServiceConfig};
 use tracing::instrument;
 use tracing::log::debug;
 use crate::error::MyError;
-use crate::response::{list, ok};
+use crate::response::{resp_list, resp_ok};
 use crate::state::AppState;
 use crate::view::base::PageOptions;
 
@@ -14,7 +14,7 @@ async fn user_list(state: Data<AppState>, page: Query<PageOptions>) -> Result<Ht
     let page = page.format();
     service::user::list_user(&state.conn, page.offset, page.limit)
         .await
-        .map(|(l, total)| list(l, total))
+        .map(|(l, total)| resp_list(l, total))
         .map(|users| HttpResponse::Ok().json(users))
         .map(Ok)?
 }
@@ -23,7 +23,7 @@ async fn user_list(state: Data<AppState>, page: Query<PageOptions>) -> Result<Ht
 async fn user_detail(state: Data<AppState>, id: Path<i32>) -> Result<HttpResponse, MyError> {
     service::user::find_user_by_id(&state.conn, id.into_inner())
         .await
-        .map(|user| ok(user))
+        .map(|user| resp_ok(user))
         .map(|user| HttpResponse::Ok().json(user))
         .map(Ok)?
 }
