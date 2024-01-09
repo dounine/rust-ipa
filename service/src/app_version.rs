@@ -4,9 +4,10 @@ use ::entity::app::AppCountry;
 use ::entity::AppVersion;
 use sea_orm::*;
 use tracing::instrument;
+use util::sql::{Sql, SqlTrait};
 
 #[instrument(skip(conn))]
-pub async fn infos(
+pub async fn search_by_appids(
     conn: &DbConn,
     country: AppCountry,
     app_ids: Vec<String>,
@@ -14,10 +15,8 @@ pub async fn infos(
     let arr_size = "ARRAY [".len();
     let app_ids = Value::from(app_ids).to_string();
     let app_ids = &app_ids[arr_size..app_ids.len() - 1];//ARRAY ['1','2'] => '1','2'
-    AppVersion::find()
-        .from_raw_sql(Statement::from_sql_and_values(
-            DatabaseBackend::Postgres,
-            format!(r#"
+
+    let sql = Sql::from(format!(r#"
              SELECT
                 a.country,
                 a.app_id,
@@ -43,7 +42,12 @@ pub async fn infos(
             WHERE
                 a.country = $1 AND app_id IN ({})
             GROUP BY a.country, a.app_id
-            "#, app_ids),
+            "#, app_ids));
+
+    AppVersion::find()
+        .from_raw_sql(Statement::from_sql_and_values(
+            DatabaseBackend::Postgres,
+            sql.compress(),
             [country.into()],
         ))
         .into_model::<NewModel>()
@@ -72,7 +76,7 @@ mod tests {
         let app_ids = vec!["1".to_owned(), "2".to_owned()];
         // let s: Value = app_ids.into();
         // debug!("sql: {}",s)
-        let lists = super::infos(&conn, AppCountry::Cn, app_ids).await.unwrap();
+        let lists = super::search_by_appids(&conn, AppCountry::Cn, app_ids).await.unwrap();
         assert_eq!(lists.len(), 1);
     }
 }

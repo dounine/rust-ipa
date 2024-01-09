@@ -15,7 +15,3 @@ impl ResponseError for MyError {
         HttpResponse::Ok().json(resp_fail(self.to_string()))
     }
 }
-
-impl std::error::Error for MyError{
-
-}

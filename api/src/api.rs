@@ -1,7 +1,6 @@
 use actix_governor::{Governor, GovernorConfigBuilder};
-use actix_web::{App, get, HttpRequest, HttpResponse, HttpServer, Responder};
+use actix_web::{App, get, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Service;
-use actix_web::error::QueryPayloadError;
 use actix_web::HttpMessage;
 use actix_web::http::header::{HeaderName, HeaderValue};
 use actix_web::web::{PathConfig, QueryConfig, ServiceConfig};

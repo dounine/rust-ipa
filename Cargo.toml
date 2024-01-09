@@ -15,7 +15,8 @@ members = [
     "api",
     "entity",
     "service",
-    "migration"
+    "migration",
+    "util"
 ]
 [dependencies]
 api = { path = "api" }
