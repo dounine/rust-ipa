@@ -59,6 +59,9 @@ pub struct Model {
     pub created_at: DateTime,
 }
 
+unsafe impl Send for Model {}
+unsafe impl Sync for Model {}
+
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {}
 

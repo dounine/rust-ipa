@@ -42,11 +42,35 @@ struct LoginData {
 #[instrument(skip(state))]
 async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<HttpResponse, MyError> {
     debug!("login data: {} {}",data.username,data.password);
-    let token = token::create_token(&token::UserData {
-        id: 1,
-        user_type: UserType::User,
-    }).unwrap();
-    Ok(HttpResponse::Ok().json(resp_ok(token)))
+    let user_query = if data.username.contains("@") {
+        service::user::find_user_by_email(&state.conn, data.username.as_str())
+            .await
+    } else {
+        service::user::find_user_by_username(&state.conn, data.username.as_str())
+            .await
+    };
+    user_query
+        .map(|user| {
+            match user {
+                Some(result) => {
+                    match result.password.unwrap_or("".to_string()) == data.password {
+                        true => {
+                            let token = token::create_token(
+                                1,
+                                UserType::User,
+                                30).unwrap();
+                            Ok(HttpResponse::Ok().json(resp_ok(token)))
+                        }
+                        false => {
+                            Err(MyError::Msg("密码错误".to_string()))
+                        }
+                    }
+                }
+                None => {
+                    Err(MyError::Msg("用户不存在".to_string()))
+                }
+            }
+        })?
 }
 
 pub fn configure(cfg: &mut ServiceConfig) {

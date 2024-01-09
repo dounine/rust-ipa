@@ -15,10 +15,22 @@ pub struct UserData {
     pub user_type: UserType,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Claims {
+    pub exp: usize,
+    pub user_type: UserType,
+    pub id: i32,
+}
+
 static JWT_SECRET: &'static str = "secret";
 
+fn with_exp(seconds: i64) -> usize {
+    let exp = chrono::Local::now() + chrono::Duration::seconds(seconds);
+    exp.timestamp() as usize
+}
+
 pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserData>, String> {
-    let data = decode::<UserData>(&token, &DecodingKey::from_secret(JWT_SECRET.as_ref()), &Validation::default())
+    let data = decode::<Claims>(&token, &DecodingKey::from_secret(JWT_SECRET.as_ref()), &Validation::default())
         .map(|data| data.claims)
         .map_err(|e| e.to_string());
     match data {
@@ -45,8 +57,13 @@ pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserDat
     }
 }
 
-pub fn create_token(user: &UserData) -> Result<String, String> {
-    encode(&Header::default(), user, &EncodingKey::from_secret(JWT_SECRET.as_ref()))
+pub fn create_token(user_id: i32, user_type: UserType, exp: i64) -> Result<String, String> {
+    let claim = Claims {
+        id: user_id,
+        user_type,
+        exp: with_exp(exp),
+    };
+    encode(&Header::default(), &claim, &EncodingKey::from_secret(JWT_SECRET.as_ref()))
         .map_err(|e| e.to_string())
 }
 
