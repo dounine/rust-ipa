@@ -36,7 +36,22 @@ pub async fn list_user(
         .map(|list| (list, num_pages))
 }
 
-#[instrument(skip(db))]
-pub async fn find_user_by_id(db: &DbConn, id: i32) -> Result<Option<UserModel>, DbErr> {
-    User::find_by_id(id).one(db).await
+#[instrument(skip(conn))]
+pub async fn find_user_by_id(conn: &DbConn, id: i32) -> Result<Option<UserModel>, DbErr> {
+    User::find_by_id(id).one(conn).await
+}
+
+#[instrument(skip(conn))]
+pub async fn find_user_by_email(conn: &DbConn, email: &str) -> Result<Option<UserModel>, DbErr> {
+    User::find()
+        .filter(UserColumn::Email.eq(email))
+        .one(conn)
+        .await
+}
+#[instrument(skip(conn))]
+pub async fn find_user_by_username(conn: &DbConn, user_name: &str) -> Result<Option<UserModel>, DbErr> {
+    User::find()
+        .filter(UserColumn::UserName.eq(user_name))
+        .one(conn)
+        .await
 }
