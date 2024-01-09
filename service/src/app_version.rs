@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use ::entity::app_version::NewModel;
 use ::entity::app::AppCountry;
 use ::entity::AppVersion;

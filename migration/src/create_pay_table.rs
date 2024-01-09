@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use entity::{Pay, PayActiveModel, User, UserActiveModel};
+use entity::{Pay, PayActiveModel};
 use entity::pay::PayPlatform;
 
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
