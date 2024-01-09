@@ -38,30 +38,30 @@ struct SearchAppParam {
     #[serde(deserialize_with = "deserialize_strings_split")]
     app_ids: Vec<String>,
 }
+#[derive(Serialize, Debug)]
+struct AppInfo {
+    name: String,
+    country: AppCountry,
+    version: String,
+    size: i64,
+    des: String,
+    icon: String,
+    platform: AppPlatform,
+    bundle_id: String,
+    price: i32,
+    genres: String,
+    single: bool,
+}
+#[derive(Serialize, Debug)]
+struct SearchApp {
+    app_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    info: Option<AppInfo>,
+}
 
 #[get("/search")]
 #[instrument(skip(state))]
 async fn search(state: Data<AppState>, query: Query<SearchAppParam>) -> Result<HttpResponse, MyError> {
-    #[derive(Serialize, Debug)]
-    struct AppInfo {
-        name: String,
-        country: AppCountry,
-        version: String,
-        size: i64,
-        des: String,
-        icon: String,
-        platform: AppPlatform,
-        bundle_id: String,
-        price: i32,
-        genres: String,
-        single: bool,
-    }
-    #[derive(Serialize, Debug)]
-    struct SearchApp {
-        app_id: String,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        info: Option<AppInfo>,
-    }
     let (search_apps, db_apps) = try_join!(
         service::app::search_by_name(&state.conn, &query.country, query.name.as_str()),
         service::app::search_by_appids(&state.conn, &query.country, query.app_ids.iter().map(|x| x.as_str()).collect())
@@ -74,6 +74,11 @@ async fn search(state: Data<AppState>, query: Query<SearchAppParam>) -> Result<H
                 apps.push(x);
             }
         });
+    query.app_ids.iter().for_each(|x| {
+        if !apps.contains(&x) {
+            apps.push(x.clone());
+        }
+    });
     let versions = service::app_version::search_by_appids(&state.conn, query.country.clone(), apps.clone())
         .await?;
     let mut app_infos: Vec<SearchApp> = vec![];
