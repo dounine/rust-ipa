@@ -2,9 +2,11 @@ use std::future::{Future};
 use std::pin::Pin;
 use actix_web::{FromRequest, HttpRequest};
 use actix_web::dev::Payload;
+use actix_web::web::Data;
 use serde::{Deserialize, Serialize};
 use jsonwebtoken::{encode, decode, Header, Validation, EncodingKey, DecodingKey};
 use entity::user::UserType;
+use migration::DbErr;
 use service::sea_orm::DbConn;
 use crate::error::MyError;
 use crate::state::AppState;
@@ -29,10 +31,10 @@ fn with_exp(seconds: i64) -> usize {
     exp.timestamp() as usize
 }
 
-pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserData>, String> {
+pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserData>, MyError> {
     let data = decode::<Claims>(&token, &DecodingKey::from_secret(JWT_SECRET.as_ref()), &Validation::default())
         .map(|data| data.claims)
-        .map_err(|e| e.to_string());
+        .map_err(|e| MyError::TokenError(e));
     match data {
         Ok(data) => {
             match data.user_type {
@@ -43,7 +45,7 @@ pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserDat
                             id: user.id,
                             user_type: user.user_type,
                         }))
-                        .map_err(|e| e.to_string())
+                        .map_err(|e| MyError::DbError(e))
                 }
                 UserType::Guest => {
                     Ok(Some(UserData {
@@ -75,16 +77,15 @@ impl FromRequest for UserData {
         let req = req.clone();
         Box::pin(async move {
             let data = req.headers()
-                .get("authorization")
+                .get("Authorization")
                 .and_then(|val| val.to_str().ok())
                 .and_then(|val| val.split("Bearer ").last());
             match data {
                 Some(token) => {
-                    let state = req.app_data::<AppState>().unwrap();
+                    let state = req.app_data::<Data<AppState>>().unwrap();
                     validate_token(token, &state.conn)
                         .await
-                        .and_then(|user| user.ok_or("用户找不到".to_string()))
-                        .map_err(|e| MyError::Msg(e.to_string()))
+                        .and_then(|user| user.ok_or(MyError::Msg("用户不存在".to_string())))
                 }
                 None => Err(MyError::Msg("invalid token".to_string())),
             }

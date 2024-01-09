@@ -8,6 +8,8 @@ pub enum MyError {
     Msg(String),
     #[error("DbError: {0}")]
     DbError(#[from] DbErr),
+    #[error("TokenError: {0}")]
+    TokenError(#[from] jsonwebtoken::errors::Error),
 }
 
 impl ResponseError for MyError {

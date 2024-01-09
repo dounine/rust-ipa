@@ -8,6 +8,7 @@ use crate::error::MyError;
 use crate::response::{resp_list, resp_ok};
 use crate::state::AppState;
 use crate::token;
+use crate::token::UserData;
 use crate::view::base::PageOptions;
 
 #[get("")]
@@ -24,7 +25,7 @@ async fn user_list(state: Data<AppState>, page: Query<PageOptions>) -> Result<Ht
 
 #[get("/{id}")]
 #[instrument(skip(state))]
-async fn user_detail(state: Data<AppState>, id: Path<i32>) -> Result<HttpResponse, MyError> {
+async fn user_detail(state: Data<AppState>, user: UserData, id: Path<i32>) -> Result<HttpResponse, MyError> {
     service::user::find_user_by_id(&state.conn, id.into_inner())
         .await
         .map(|user| resp_ok(user))
@@ -62,7 +63,7 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
                             Ok(HttpResponse::Ok().json(resp_ok(token)))
                         }
                         false => {
-                            Err(MyError::Msg("密码错误".to_string()))
+                            Err(MyError::Msg("帐号或者密码错误".to_string()))
                         }
                     }
                 }
