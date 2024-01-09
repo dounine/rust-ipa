@@ -26,3 +26,4 @@ cached = "0.47.0"
 jsonwebtoken = "9.2.0"
 thiserror = "1.0.56"
 chrono = "0.4.31"
+md5 = { version = "0.7.0" }

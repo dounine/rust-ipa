@@ -3,7 +3,7 @@ use actix_web::web::{Data, Json, Path, Query, scope, ServiceConfig};
 use serde::Deserialize;
 use tracing::{instrument};
 use tracing::log::debug;
-use entity::user::UserType;
+use entity::user::{Model, UserStatus, UserType};
 use crate::error::MyError;
 use crate::response::{resp_list, resp_ok};
 use crate::state::AppState;
@@ -54,7 +54,14 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
         .map(|user| {
             match user {
                 Some(result) => {
-                    match result.password.unwrap_or("".to_string()) == data.password {
+                    if result.status == UserStatus::Disable {
+                        return Err(MyError::Msg("用户已被禁用".to_string()));
+                    }
+                    if result.password.is_none() {
+                        return Err(MyError::Msg("帐号或者密码错误".to_string()));
+                    }
+                    let hash = md5::compute(data.password.as_bytes());
+                    match format!("{:?}", hash) == result.password.unwrap_or_default() {
                         true => {
                             let token = token::create_token(
                                 1,
