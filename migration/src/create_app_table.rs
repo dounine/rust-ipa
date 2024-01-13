@@ -59,12 +59,7 @@ impl MigrationTrait for Migration {
                             .not_null()
                             .comment("描述"),
                     )
-                    .col(
-                        ColumnDef::new(Apps::Icon)
-                            .text()
-                            .not_null()
-                            .comment("图标"),
-                    )
+                    .col(ColumnDef::new(Apps::Icon).text().not_null().comment("图标"))
                     .col(
                         ColumnDef::new(Apps::Platform)
                             .tiny_integer()
@@ -97,7 +92,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -106,7 +102,8 @@ impl MigrationTrait for Migration {
                     .table(App.table_ref())
                     .col(Apps::Name)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -115,7 +112,8 @@ impl MigrationTrait for Migration {
                     .table(App.table_ref())
                     .col(Apps::AppId)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         AppActiveModel {
@@ -140,10 +138,22 @@ impl MigrationTrait for Migration {
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().name("idx-app-name").table(App.table_ref()).to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .name("idx-app-name")
+                    .table(App.table_ref())
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().name("idx-app-app_id").table(App.table_ref()).to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .name("idx-app-app_id")
+                    .table(App.table_ref())
+                    .to_owned(),
+            )
             .await?;
         manager
             .drop_table(Table::drop().table(App.table_ref()).to_owned())

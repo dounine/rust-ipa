@@ -1,10 +1,10 @@
 use sea_orm_migration::prelude::*;
 
-use entity::{Pay, PayActiveModel};
 use entity::pay::PayPlatform;
+use entity::{Pay, PayActiveModel};
 
-use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 use crate::sea_orm::prelude::DateTime;
+use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -77,7 +77,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -86,7 +87,8 @@ impl MigrationTrait for Migration {
                     .name("idx-pay-created_at")
                     .col(Pays::CreatedAt)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayActiveModel {
@@ -99,15 +101,21 @@ impl MigrationTrait for Migration {
             payed_time: Set(Some(DateTime::default())),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(Pay.table_ref()).name("idx-pay-created_at").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(Pay.table_ref())
+                    .name("idx-pay-created_at")
+                    .to_owned(),
+            )
             .await?;
         manager
             .drop_table(Table::drop().if_exists().table(Pay.table_ref()).to_owned())

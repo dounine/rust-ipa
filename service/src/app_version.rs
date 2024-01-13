@@ -1,5 +1,5 @@
-use ::entity::app_version::NewModel;
 use ::entity::app::AppCountry;
+use ::entity::app_version::NewModel;
 use ::entity::AppVersion;
 use sea_orm::*;
 use tracing::instrument;
@@ -13,9 +13,10 @@ pub async fn search_by_appids(
 ) -> Result<Vec<NewModel>, DbErr> {
     let arr_size = "ARRAY [".len();
     let app_ids = Value::from(app_ids).to_string();
-    let app_ids = &app_ids[arr_size..app_ids.len() - 1];//ARRAY ['1','2'] => '1','2'
+    let app_ids = &app_ids[arr_size..app_ids.len() - 1]; //ARRAY ['1','2'] => '1','2'
 
-    let sql = Sql::from(format!(r#"
+    let sql = Sql::from(format!(
+        r#"
              SELECT
                 a.country,
                 a.app_id,
@@ -41,7 +42,9 @@ pub async fn search_by_appids(
             WHERE
                 a.country = $1 AND app_id IN ({})
             GROUP BY a.country, a.app_id
-            "#, app_ids));
+            "#,
+        app_ids
+    ));
 
     AppVersion::find()
         .from_raw_sql(Statement::from_sql_and_values(
@@ -56,10 +59,10 @@ pub async fn search_by_appids(
 
 #[cfg(test)]
 mod tests {
-    use std::env;
-    use std::time::Duration;
     use entity::app::AppCountry;
     use sea_orm::{ConnectOptions, Database, Value};
+    use std::env;
+    use std::time::Duration;
     use tracing::{debug, info, log};
 
     #[tokio::test]
@@ -71,11 +74,15 @@ mod tests {
         info!("test_query_user");
         dotenvy::dotenv().ok();
         let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
-        let conn = Database::connect(database_url).await.expect("Cannot connect to database");
+        let conn = Database::connect(database_url)
+            .await
+            .expect("Cannot connect to database");
         let app_ids = vec!["1".to_owned(), "2".to_owned()];
         // let s: Value = app_ids.into();
         // debug!("sql: {}",s)
-        let lists = super::search_by_appids(&conn, AppCountry::Cn, app_ids).await.unwrap();
+        let lists = super::search_by_appids(&conn, AppCountry::Cn, app_ids)
+            .await
+            .unwrap();
         assert_eq!(lists.len(), 1);
     }
 }

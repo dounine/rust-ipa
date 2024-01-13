@@ -1,6 +1,6 @@
-use sea_orm_migration::prelude::*;
-use entity::{UserDump, UserDumpActiveModel};
 use entity::app::AppCountry;
+use entity::{UserDump, UserDumpActiveModel};
+use sea_orm_migration::prelude::*;
 
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
@@ -56,7 +56,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -65,7 +66,8 @@ impl MigrationTrait for Migration {
                     .name("idx-user_dump-user_id")
                     .col(UserDumps::UserId)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -74,7 +76,8 @@ impl MigrationTrait for Migration {
                     .name("idx-user_dump-created_at")
                     .col(UserDumps::CreatedAt)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         UserDumpActiveModel {
@@ -84,21 +87,38 @@ impl MigrationTrait for Migration {
             version: Set("1.0.0".to_owned()),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(UserDump.table_ref()).name("idx-user_dump-user_id").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(UserDump.table_ref())
+                    .name("idx-user_dump-user_id")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().table(UserDump.table_ref()).name("idx-user_dump-created_at").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(UserDump.table_ref())
+                    .name("idx-user_dump-created_at")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_table(Table::drop().if_exists().table(UserDump.table_ref()).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(UserDump.table_ref())
+                    .to_owned(),
+            )
             .await
     }
 }

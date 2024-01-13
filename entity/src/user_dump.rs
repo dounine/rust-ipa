@@ -1,5 +1,5 @@
-use sea_orm::entity::prelude::*;
 use crate::app::AppCountry;
+use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "user_dump")]

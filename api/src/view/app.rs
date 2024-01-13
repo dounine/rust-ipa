@@ -1,14 +1,14 @@
-use actix_web::{get, HttpResponse, post};
-use actix_web::web::{Data, Json, Query, scope, ServiceConfig};
-use serde::{Deserialize, Serialize};
-use tokio::try_join;
-use tracing::instrument;
-use entity::app::{AppCountry, AppPlatform};
 use crate::error::MyError;
 use crate::response::{resp_list, resp_ok, resp_ok_empty};
 use crate::state::AppState;
-use crate::view::base::PageOptions;
 use crate::view::base::deserialize_strings_split;
+use crate::view::base::PageOptions;
+use actix_web::web::{scope, Data, Json, Query, ServiceConfig};
+use actix_web::{get, post, HttpResponse};
+use entity::app::{AppCountry, AppPlatform};
+use serde::{Deserialize, Serialize};
+use tokio::try_join;
+use tracing::instrument;
 
 #[get("")]
 #[instrument(skip(state))]
@@ -23,7 +23,10 @@ async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpRe
 
 #[post("")]
 #[instrument(skip(state))]
-async fn create(state: Data<AppState>, form: Json<entity::AppModel>) -> Result<HttpResponse, MyError> {
+async fn create(
+    state: Data<AppState>,
+    form: Json<entity::AppModel>,
+) -> Result<HttpResponse, MyError> {
     service::app::create(&state.conn, form.into_inner())
         .await
         .map(|_| resp_ok_empty())
@@ -61,35 +64,40 @@ struct SearchApp {
 
 #[get("/search")]
 #[instrument(skip(state))]
-async fn search(state: Data<AppState>, query: Query<SearchAppParam>) -> Result<HttpResponse, MyError> {
+async fn search(
+    state: Data<AppState>,
+    query: Query<SearchAppParam>,
+) -> Result<HttpResponse, MyError> {
     let (search_apps, db_apps) = try_join!(
         service::app::search_by_name(&state.conn, &query.country, query.name.as_str()),
-        service::app::search_by_appids(&state.conn, &query.country, query.app_ids.iter().map(|x| x.as_str()).collect())
+        service::app::search_by_appids(
+            &state.conn,
+            &query.country,
+            query.app_ids.iter().map(|x| x.as_str()).collect()
+        )
     )
-        .map_err(|e| MyError::Msg(e.to_string()))?;
+    .map_err(|e| MyError::Msg(e.to_string()))?;
     let mut apps: Vec<String> = vec![];
-    search_apps.iter().map(|x| x.app_id.clone())
-        .for_each(|x| {
-            if !apps.contains(&x) {
-                apps.push(x);
-            }
-        });
+    search_apps.iter().map(|x| x.app_id.clone()).for_each(|x| {
+        if !apps.contains(&x) {
+            apps.push(x);
+        }
+    });
     query.app_ids.iter().for_each(|x| {
         if !apps.contains(&x) {
             apps.push(x.clone());
         }
     });
-    let versions = service::app_version::search_by_appids(&state.conn, query.country.clone(), apps.clone())
-        .await?;
+    let versions =
+        service::app_version::search_by_appids(&state.conn, query.country.clone(), apps.clone())
+            .await?;
     let mut app_infos: Vec<SearchApp> = vec![];
     apps.iter().for_each(|appid| {
         match search_apps
             .iter()
             .find(|y| y.app_id == *appid)
-            .or_else(|| db_apps
-                .iter()
-                .find(|y| y.app_id == *appid)
-            ) {
+            .or_else(|| db_apps.iter().find(|y| y.app_id == *appid))
+        {
             None => app_infos.push(SearchApp {
                 app_id: appid.clone(),
                 info: None,
@@ -127,6 +135,6 @@ pub fn configure(cfg: &mut ServiceConfig) {
         scope("/apps")
             .service(lists)
             .service(create)
-            .service(search)
+            .service(search),
     );
 }

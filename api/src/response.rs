@@ -37,10 +37,7 @@ pub fn resp_list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
     Response {
         ok: true,
         err: None,
-        data: Some(ListData {
-            list,
-            total,
-        }),
+        data: Some(ListData { list, total }),
     }
 }
 

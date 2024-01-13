@@ -1,17 +1,14 @@
-use std::fmt::Debug;
 use ::entity::app::{AppCountry, AppPlatform};
+use ::entity::App;
+use ::entity::AppActiveModel;
 use ::entity::AppColumn;
 use ::entity::AppModel;
-use ::entity::AppActiveModel;
-use ::entity::App;
 use sea_orm::*;
+use std::fmt::Debug;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn create(
-    conn: &DbConn,
-    form_data: AppModel,
-) -> Result<(), DbErr> {
+pub async fn create(conn: &DbConn, form_data: AppModel) -> Result<(), DbErr> {
     AppActiveModel {
         app_id: Set("1".to_owned()),
         country: Set(AppCountry::Cn),
@@ -37,15 +34,19 @@ pub async fn search_by_name<S>(
     country: &AppCountry,
     name: S,
 ) -> Result<Vec<AppModel>, DbErr>
-    where S: AsRef<str> + Debug
+where
+    S: AsRef<str> + Debug,
 {
     let name = name.as_ref();
     App::find()
-        .filter(AppColumn::Country.eq(country.clone()).and(
-            AppColumn::Name.eq(name)
-                .or(AppColumn::Name.contains(name))
-                .or(AppColumn::AppId.eq(name)),
-        ))
+        .filter(
+            AppColumn::Country.eq(country.clone()).and(
+                AppColumn::Name
+                    .eq(name)
+                    .or(AppColumn::Name.contains(name))
+                    .or(AppColumn::AppId.eq(name)),
+            ),
+        )
         .limit(3)
         .all(conn)
         .await
@@ -57,25 +58,23 @@ pub async fn search_by_appids<S>(
     country: &AppCountry,
     app_ids: Vec<S>,
 ) -> Result<Vec<AppModel>, DbErr>
-    where S: AsRef<str> + Debug
+where
+    S: AsRef<str> + Debug,
 {
     let app_ids = app_ids.iter().map(|x| x.as_ref()).collect::<Vec<_>>();
     App::find()
-        .filter(AppColumn::Country.eq(country.clone()).and(
-            AppColumn::AppId.is_in(app_ids),
-        ))
+        .filter(
+            AppColumn::Country
+                .eq(country.clone())
+                .and(AppColumn::AppId.is_in(app_ids)),
+        )
         .all(conn)
         .await
 }
 
 #[instrument(skip(conn))]
-pub async fn list(
-    conn: &DbConn,
-    offset: u64,
-    limit: u64,
-) -> Result<(Vec<AppModel>, u64), DbErr> {
-    let paginator = App::find()
-        .paginate(conn, limit);
+pub async fn list(conn: &DbConn, offset: u64, limit: u64) -> Result<(Vec<AppModel>, u64), DbErr> {
+    let paginator = App::find().paginate(conn, limit);
     let num_pages = paginator.num_pages().await?;
     paginator
         .fetch_page(offset)

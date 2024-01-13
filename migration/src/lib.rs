@@ -3,10 +3,10 @@ pub use sea_orm_migration::prelude::*;
 mod create_user_table;
 
 mod create_app_table;
-mod create_pay_table;
-mod create_pay_record_table;
 mod create_app_version_table;
 mod create_dump_table;
+mod create_pay_record_table;
+mod create_pay_table;
 mod create_user_dump_table;
 
 pub struct Migrator;

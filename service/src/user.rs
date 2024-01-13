@@ -1,23 +1,20 @@
+use ::entity::User;
+use ::entity::UserActiveModel;
 use ::entity::UserColumn;
 use ::entity::UserModel;
-use ::entity::UserActiveModel;
-use ::entity::User;
 use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn create_user(
-    conn: &DbConn,
-    form_data: UserModel,
-) -> Result<UserActiveModel, DbErr> {
+pub async fn create_user(conn: &DbConn, form_data: UserModel) -> Result<UserActiveModel, DbErr> {
     UserActiveModel {
         nick_name: Set(form_data.nick_name.to_owned()),
         email: Set(form_data.email.to_owned()),
         password: Set(form_data.password.to_owned()),
         ..Default::default()
     }
-        .save(conn)
-        .await
+    .save(conn)
+    .await
 }
 
 #[instrument(skip(conn))]
@@ -49,7 +46,10 @@ pub async fn find_user_by_email(conn: &DbConn, email: &str) -> Result<Option<Use
         .await
 }
 #[instrument(skip(conn))]
-pub async fn find_user_by_username(conn: &DbConn, user_name: &str) -> Result<Option<UserModel>, DbErr> {
+pub async fn find_user_by_username(
+    conn: &DbConn,
+    user_name: &str,
+) -> Result<Option<UserModel>, DbErr> {
     User::find()
         .filter(UserColumn::UserName.eq(user_name))
         .one(conn)

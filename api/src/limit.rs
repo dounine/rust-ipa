@@ -1,10 +1,10 @@
-use actix_governor::{KeyExtractor, SimpleKeyExtractionError};
+use crate::response;
 use actix_governor::governor::clock::{Clock, DefaultClock, QuantaInstant};
 use actix_governor::governor::NotUntil;
+use actix_governor::{KeyExtractor, SimpleKeyExtractionError};
 use actix_web::dev::ServiceRequest;
-use actix_web::{HttpResponse, HttpResponseBuilder};
 use actix_web::http::StatusCode;
-use crate::response;
+use actix_web::{HttpResponse, HttpResponseBuilder};
 
 #[derive(Clone)]
 pub(crate) struct RequestLimit;
@@ -21,8 +21,13 @@ impl KeyExtractor for RequestLimit {
 
     fn extract(&self, req: &ServiceRequest) -> Result<Self::Key, Self::KeyExtractionError> {
         req.connection_info()
-            .realip_remote_addr()//remote ip
-            .map_or(Err(SimpleKeyExtractionError::new("remote ip not found".to_string())), |ip| Ok(ip.to_string()))
+            .realip_remote_addr() //remote ip
+            .map_or(
+                Err(SimpleKeyExtractionError::new(
+                    "remote ip not found".to_string(),
+                )),
+                |ip| Ok(ip.to_string()),
+            )
     }
     fn exceed_rate_limit_response(
         &self,
@@ -34,6 +39,9 @@ impl KeyExtractor for RequestLimit {
             .as_millis();
         response
             .status(StatusCode::OK)
-            .json(response::resp_fail(format!("Too many requests, retry in {} millis", wait_time)))
+            .json(response::resp_fail(format!(
+                "Too many requests, retry in {} millis",
+                wait_time
+            )))
     }
 }

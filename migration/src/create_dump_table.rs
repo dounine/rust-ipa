@@ -1,8 +1,8 @@
 use sea_orm_migration::prelude::*;
 
-use entity::{Dump, DumpActiveModel};
 use entity::app::AppCountry;
 use entity::dump::DumpStatus;
+use entity::{Dump, DumpActiveModel};
 
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
@@ -103,7 +103,8 @@ impl MigrationTrait for Migration {
                     .name("idx-dump-status")
                     .col(Dumps::Status)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -112,7 +113,8 @@ impl MigrationTrait for Migration {
                     .name("idx-dump-created_at")
                     .col(Dumps::CreatedAt)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         DumpActiveModel {
@@ -128,18 +130,30 @@ impl MigrationTrait for Migration {
             status: Set(DumpStatus::Waiting),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(Dump.table_ref()).name("idx-dump-status").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(Dump.table_ref())
+                    .name("idx-dump-status")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().table(Dump.table_ref()).name("idx-dump-created_at").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(Dump.table_ref())
+                    .name("idx-dump-created_at")
+                    .to_owned(),
+            )
             .await?;
         manager
             .drop_table(Table::drop().if_exists().table(Dump.table_ref()).to_owned())

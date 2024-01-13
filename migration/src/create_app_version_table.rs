@@ -1,7 +1,7 @@
 use sea_orm_migration::prelude::*;
 
-use entity::{AppVersion, AppVersionActiveModel};
 use entity::app::AppCountry;
+use entity::{AppVersion, AppVersionActiveModel};
 
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
@@ -83,7 +83,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -92,7 +93,8 @@ impl MigrationTrait for Migration {
                     .name("idx-app-created_at")
                     .col(AppVersions::CreatedAt)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         //AppId+Country 联合索引
         manager
             .create_index(
@@ -103,7 +105,8 @@ impl MigrationTrait for Migration {
                     .col(AppVersions::AppId)
                     .col(AppVersions::Country)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         AppVersionActiveModel {
@@ -117,21 +120,38 @@ impl MigrationTrait for Migration {
             size: Set(1024 * 1024),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(AppVersion.table_ref()).name("idx-app-created_at").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(AppVersion.table_ref())
+                    .name("idx-app-created_at")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().table(AppVersion.table_ref()).name("idx-app-app_id_country").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(AppVersion.table_ref())
+                    .name("idx-app-app_id_country")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_table(Table::drop().if_exists().table(AppVersion.table_ref()).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(AppVersion.table_ref())
+                    .to_owned(),
+            )
             .await
     }
 }

@@ -26,8 +26,8 @@ fn limit_default() -> u64 {
 }
 
 pub fn deserialize_strings_split<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
+where
+    D: serde::Deserializer<'de>,
 {
     let s: String = Deserialize::deserialize(deserializer)?;
     let parts: Vec<String> = s.split(',').map(String::from).collect();

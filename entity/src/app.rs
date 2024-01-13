@@ -22,7 +22,7 @@ pub enum AppPlatform {
     TrollStore = 1,
     //巨魔
     #[sea_orm(num_value = 2)]
-    Cydia = 2,//越狱
+    Cydia = 2, //越狱
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq)]

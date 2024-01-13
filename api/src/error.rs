@@ -1,5 +1,5 @@
-use actix_web::{HttpResponse, ResponseError};
 use crate::response::resp_fail;
+use actix_web::{HttpResponse, ResponseError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum MyError {

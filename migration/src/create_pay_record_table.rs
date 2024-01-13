@@ -1,7 +1,7 @@
 use sea_orm_migration::prelude::*;
 
-use entity::{PayRecord, PayRecordActiveModel};
 use entity::pay_record::PayRecordType;
+use entity::{PayRecord, PayRecordActiveModel};
 
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
@@ -57,7 +57,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -66,7 +67,8 @@ impl MigrationTrait for Migration {
                     .name("idx-pay_record-user_id")
                     .col(PayRecords::UserId)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -75,7 +77,8 @@ impl MigrationTrait for Migration {
                     .name("idx-pay_record-created_at")
                     .col(PayRecords::CreatedAt)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayRecordActiveModel {
@@ -86,21 +89,38 @@ impl MigrationTrait for Migration {
             des: Set(Some("充值".to_owned())),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(PayRecord.table_ref()).name("idx-pay_record-user_id").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(PayRecord.table_ref())
+                    .name("idx-pay_record-user_id")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().table(PayRecord.table_ref()).name("idx-pay_record-created_at").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(PayRecord.table_ref())
+                    .name("idx-pay_record-created_at")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_table(Table::drop().if_exists().table(PayRecord.table_ref()).to_owned())
+            .drop_table(
+                Table::drop()
+                    .if_exists()
+                    .table(PayRecord.table_ref())
+                    .to_owned(),
+            )
             .await
     }
 }

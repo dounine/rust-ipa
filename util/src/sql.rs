@@ -43,6 +43,7 @@ impl SqlTrait for Sql {
             .replace("\r", "")
             .split_whitespace()
             .collect::<Vec<_>>()
-            .join(" ").into()
+            .join(" ")
+            .into()
     }
 }

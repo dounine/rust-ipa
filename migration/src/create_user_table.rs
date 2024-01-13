@@ -101,7 +101,8 @@ impl MigrationTrait for Migration {
                             .comment("创建时间"),
                     )
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -110,7 +111,8 @@ impl MigrationTrait for Migration {
                     .name("idx-user-user_name")
                     .col(Users::UserName)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         manager
             .create_index(
                 Index::create()
@@ -119,7 +121,8 @@ impl MigrationTrait for Migration {
                     .name("idx-user-email")
                     .col(Users::Email)
                     .to_owned(),
-            ).await?;
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         UserActiveModel {
@@ -133,18 +136,30 @@ impl MigrationTrait for Migration {
             user_type: Set(UserType::User),
             ..Default::default()
         }
-            .insert(conn)
-            .await?;
+        .insert(conn)
+        .await?;
         tx.commit().await?;
         Ok(())
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_index(Index::drop().if_exists().table(User.table_ref()).name("idx-user-user_name").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(User.table_ref())
+                    .name("idx-user-user_name")
+                    .to_owned(),
+            )
             .await?;
         manager
-            .drop_index(Index::drop().if_exists().table(User.table_ref()).name("idx-user-email").to_owned())
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(User.table_ref())
+                    .name("idx-user-email")
+                    .to_owned(),
+            )
             .await?;
         manager
             .drop_table(Table::drop().if_exists().table(User.table_ref()).to_owned())

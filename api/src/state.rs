@@ -1,9 +1,9 @@
+use migration::sea_orm::{Database, DatabaseConnection};
+use service::sea_orm::ConnectOptions;
 use std::env;
 use std::sync::Mutex;
 use std::time::Duration;
 use tracing::log;
-use migration::sea_orm::{Database, DatabaseConnection};
-use service::sea_orm::ConnectOptions;
 
 pub struct AppState {
     pub users: Mutex<Vec<String>>,
@@ -22,7 +22,9 @@ impl AppState {
             .acquire_timeout(Duration::from_secs(8))
             .idle_timeout(Duration::from_secs(8))
             .max_lifetime(Duration::from_secs(8));
-        let conn = Database::connect(opt).await.expect("Cannot connect to database");
+        let conn = Database::connect(opt)
+            .await
+            .expect("Cannot connect to database");
         Self {
             users: Mutex::new(vec![]),
             conn,

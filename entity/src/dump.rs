@@ -1,6 +1,6 @@
+use crate::app::AppCountry;
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::app::AppCountry;
 
 #[derive(Debug, Clone, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
