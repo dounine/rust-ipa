@@ -1,21 +1,16 @@
 [package]
 name = "migration"
-version = "0.1.0"
-edition = "2021"
-publish = false
+version = { workspace = true }
+edition = { workspace = true }
+publish = { workspace = true }
 
 [lib]
 name = "migration"
 path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-[dependencies.async-std]
-version = "1.10.0"
-features = ["attributes", "tokio1"]
-
-[dependencies.sea-orm-migration]
-version = "0.12.10"
-features = ["sqlx-postgres", "runtime-tokio-rustls"]
-
 [dependencies]
 entity = { path = "../entity" }
+
+async-std = { workspace = true }
+sea-orm-migration = { workspace = true }

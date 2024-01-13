@@ -1,3 +1,4 @@
+use std::future::Future;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::{App, get, HttpResponse, HttpServer, Responder};
 use actix_web::dev::Service;
@@ -26,6 +27,18 @@ struct Args {
     log: LevelFilter,
     #[arg(long, default_value = "false")]
     release: bool,
+}
+
+#[get("/")]
+async fn home() -> impl Responder {
+    let time = chrono::Local::now().naive_local().format("%Y-%m-%d %H:%M:%S").to_string();
+    let content = format!("hello php!!!\n{time}");
+    HttpResponse::Ok().body(content)
+}
+
+fn init_router(cfg: &mut ServiceConfig) {
+    cfg.configure(crate::user::configure);
+    cfg.configure(crate::app::configure);
 }
 
 #[actix_web::main]
@@ -100,21 +113,9 @@ async fn start() -> std::io::Result<()> {
     Ok(())
 }
 
-#[get("/")]
-async fn home() -> impl Responder {
-    let time = chrono::Local::now().naive_local().format("%Y-%m-%d %H:%M:%S").to_string();
-    let content = format!("hello php!!!\n{}", time);
-    HttpResponse::Ok().body(content)
-}
-
-fn init_router(cfg: &mut ServiceConfig) {
-    cfg.configure(crate::user::configure);
-    cfg.configure(crate::app::configure);
-}
-
 pub fn main() {
     let result = start();
     if let Some(err) = result.err() {
-        println!("Error: {err}")
+        eprintln!("Error: {err}")
     }
 }

@@ -1,8 +1,8 @@
 [package]
 name = "api"
-version = "0.1.0"
-edition = "2021"
-publish = false
+version = { workspace = true }
+edition = { workspace = true }
+publish = { workspace = true }
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -10,20 +10,21 @@ publish = false
 entity = { path = "../entity" }
 service = { path = "../service" }
 migration = { path = "../migration" }
-actix-web = { version = "4.4.1" }
-tokio = { version = "1.35.1", features = ["macros"] }
-actix-governor = "0.5.0"
-dotenvy = "0.15.7"
-serde = { version = "1.0.195", features = ["derive"] }
-serde_json = "1.0.80"
-tracing-subscriber = "0.3.18"
-clap = { version = "4.4.11", features = ["derive"] }
-tracing = "0.1.40"
-tracing-actix-web = "0.7.9"
-tracing-appender = "0.2.3"
-listenfd = "1.0.1"
-cached = "0.47.0"
-jsonwebtoken = "9.2.0"
-thiserror = "1.0.56"
-chrono = "0.4.31"
-md5 = { version = "0.7.0" }
+
+actix-web = { workspace = true }
+tokio = { workspace = true }
+actix-governor = { workspace = true }
+dotenvy = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-actix-web = { workspace = true }
+tracing-appender = { workspace = true }
+listenfd = { workspace = true }
+cached = { workspace = true }
+jsonwebtoken = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+md5 = { workspace = true }

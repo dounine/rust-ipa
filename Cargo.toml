@@ -5,6 +5,15 @@ edition = "2021"
 authors = ["dounine <amwoqmgo@mail.com>"]
 description = "ipa download for rust web"
 repository = "https://github.com/dounine/rust-ipa"
+publish = false
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["dounine <amwoqmgo@mail.com>"]
+description = "ipa download for rust web"
+repository = "https://github.com/dounine/rust-ipa"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -20,3 +29,31 @@ members = [
 ]
 [dependencies]
 api = { path = "api" }
+
+[workspace.dependencies]
+actix-web = { version = "4.4.1" }
+tokio = { version = "1.35.1", features = ["macros"] }
+actix-governor = "0.5.0"
+dotenvy = "0.15.7"
+sea-orm = { version = "0.12.10", features = ["sqlx-postgres", "runtime-async-std-native-tls", "debug-print"] }
+serde = { version = "1.0.195", features = ["derive"] }
+serde_json = "1.0.80"
+clap = { version = "4.4.11", features = ["derive"] }
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+tracing-actix-web = "0.7.9"
+tracing-appender = "0.2.3"
+listenfd = "1.0.1"
+cached = "0.47.0"
+jsonwebtoken = "9.2.0"
+thiserror = "1.0.56"
+chrono = "0.4.31"
+md5 = { version = "0.7.0" }
+async-std = { version = "1.10.0", features = ["attributes", "tokio1"] }
+sea-orm-migration = { version = "0.12.10", features = ["sqlx-postgres", "runtime-tokio-rustls"] }
+
+[workspace.dev-dependencies]
+dotenvy = "0.15.7"
+tracing = "0.1.40"
+tracing-subscriber = "0.3.18"
+tokio = { version = "1.35.1", features = ["macros", "rt"] }
