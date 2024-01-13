@@ -1,7 +1,7 @@
-use crate::error::MyError;
-use crate::limit::RequestLimit;
-use crate::span::DomainRootSpanBuilder;
-use crate::state::AppState;
+use crate::base::error::MyError;
+use crate::base::limit::RequestLimit;
+use crate::base::span::DomainRootSpanBuilder;
+use crate::base::state::AppState;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::dev::Service;
 use actix_web::http::header::{HeaderName, HeaderValue};

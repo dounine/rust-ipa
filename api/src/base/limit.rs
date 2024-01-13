@@ -1,10 +1,10 @@
-use crate::response;
 use actix_governor::governor::clock::{Clock, DefaultClock, QuantaInstant};
 use actix_governor::governor::NotUntil;
 use actix_governor::{KeyExtractor, SimpleKeyExtractionError};
 use actix_web::dev::ServiceRequest;
 use actix_web::http::StatusCode;
 use actix_web::{HttpResponse, HttpResponseBuilder};
+use crate::base::response;
 
 #[derive(Clone)]
 pub(crate) struct RequestLimit;

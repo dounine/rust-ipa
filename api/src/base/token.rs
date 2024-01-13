@@ -1,5 +1,3 @@
-use crate::error::MyError;
-use crate::state::AppState;
 use actix_web::dev::Payload;
 use actix_web::web::Data;
 use actix_web::{FromRequest, HttpRequest};
@@ -10,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use service::sea_orm::DbConn;
 use std::future::Future;
 use std::pin::Pin;
+use crate::base::error::MyError;
+use crate::base::state::AppState;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserData {
