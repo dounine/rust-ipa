@@ -11,6 +11,7 @@ entity = { path = "../entity" }
 service = { path = "../service" }
 migration = { path = "../migration" }
 
+wechat-pay-rust-sdk = { workspace = true }
 actix-web = { workspace = true }
 tokio = { workspace = true }
 actix-governor = { workspace = true }

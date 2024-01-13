@@ -4,3 +4,6 @@
 *.iml
 logs/
 **/*.lock
+**/*.log
+**/*.iml
+**/*.xml
