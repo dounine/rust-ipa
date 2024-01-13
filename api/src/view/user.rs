@@ -58,21 +58,21 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
     user_query.map(|user| match user {
         Some(result) => {
             if result.status == UserStatus::Disable {
-                return Err(MyError::Msg("用户已被禁用".to_string()));
+                return MyError::msg("用户已被禁用").into();
             }
             if result.password.is_none() {
-                return Err(MyError::Msg("帐号或者密码错误".to_string()));
+                return MyError::msg("帐号或者密码错误").into();
             }
-            let hash = md5::compute(data.password.as_bytes());
-            match format!("{:?}", hash) == result.password.unwrap_or_default() {
+
+            match util::crypto::md5(data.password.as_str()) == result.password.unwrap_or_default() {
                 true => {
                     let token = token::create_token(1, UserType::User, 30).unwrap();
-                    Ok(HttpResponse::Ok().json(resp_ok(token)))
+                    Ok(resp_ok(token).into())
                 }
-                false => Err(MyError::Msg("帐号或者密码错误".to_string())),
+                false => MyError::msg("帐号或者密码错误").into(),
             }
         }
-        None => Err(MyError::Msg("用户不存在".to_string())),
+        None => MyError::msg("用户不存在").into(),
     })?
 }
 

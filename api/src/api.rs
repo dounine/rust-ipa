@@ -11,7 +11,6 @@ use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 use clap::Parser;
 use listenfd::ListenFd;
 use migration::{Migrator, MigratorTrait};
-use std::future::Future;
 use tracing::info;
 use tracing::level_filters::LevelFilter;
 use tracing_actix_web::{RootSpan, TracingLogger};
@@ -103,11 +102,11 @@ async fn start() -> std::io::Result<()> {
             .app_data(app_state.clone()) //global state
             .app_data(
                 QueryConfig::default()
-                    .error_handler(|err, _req| MyError::Msg(err.to_string()).into()),
+                    .error_handler(|err, _req| MyError::msg(err.to_string()).into()),
             )
             .app_data(
                 PathConfig::default()
-                    .error_handler(|err, _req| MyError::Msg(err.to_string()).into()),
+                    .error_handler(|err, _req| MyError::msg(err.to_string()).into()),
             )
             .wrap(TracingLogger::<DomainRootSpanBuilder>::new())
             .configure(init_router)

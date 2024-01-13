@@ -1,9 +1,10 @@
+use crate::base::error::MyError;
 use actix_web::body::BoxBody;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug)]
-pub struct Response<T> {
+pub struct Response<T: Serialize> {
     pub ok: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub err: Option<String>,
@@ -12,12 +13,18 @@ pub struct Response<T> {
 }
 
 #[derive(Serialize, Debug)]
-pub struct ListData<T> {
+pub struct ListData<T: Serialize> {
     pub list: Vec<T>,
     pub total: u64,
 }
 
-pub fn resp_ok<T>(data: T) -> Response<T> {
+impl<T: Serialize> Into<HttpResponse> for Response<T> {
+    fn into(self) -> HttpResponse {
+        HttpResponse::Ok().json(self)
+    }
+}
+
+pub fn resp_ok<T: Serialize>(data: T) -> Response<T> {
     Response {
         ok: true,
         err: None,
@@ -33,7 +40,7 @@ pub fn resp_ok_empty() -> Response<String> {
     }
 }
 
-pub fn resp_list<T>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
+pub fn resp_list<T: Serialize>(list: Vec<T>, total: u64) -> Response<ListData<T>> {
     Response {
         ok: true,
         err: None,

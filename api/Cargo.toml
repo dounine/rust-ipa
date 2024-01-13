@@ -10,6 +10,7 @@ publish = { workspace = true }
 entity = { path = "../entity" }
 service = { path = "../service" }
 migration = { path = "../migration" }
+util = { path = "../util" }
 
 wechat-pay-rust-sdk = { workspace = true }
 actix-web = { workspace = true }

@@ -6,6 +6,7 @@ use crate::view::base::PageOptions;
 use actix_web::web::{scope, Data, Json, Query, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
 use entity::app::{AppCountry, AppPlatform};
+use migration::DbErr;
 use serde::{Deserialize, Serialize};
 use tokio::try_join;
 use tracing::instrument;
@@ -75,8 +76,7 @@ async fn search(
             &query.country,
             query.app_ids.iter().map(|x| x.as_str()).collect()
         )
-    )
-    .map_err(|e| MyError::Msg(e.to_string()))?;
+    )?;
     let mut apps: Vec<String> = vec![];
     search_apps.iter().map(|x| x.app_id.clone()).for_each(|x| {
         if !apps.contains(&x) {
