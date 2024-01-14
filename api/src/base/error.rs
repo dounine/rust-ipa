@@ -1,6 +1,5 @@
 use crate::base::response::{resp_fail, resp_ok, resp_ok_empty};
 use actix_web::{HttpRequest, HttpResponse, Responder, ResponseError};
-use std::ops::Deref;
 
 #[derive(thiserror::Error, Debug)]
 pub enum MyError {

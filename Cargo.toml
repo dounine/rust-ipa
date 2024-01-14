@@ -25,12 +25,20 @@ members = [
     "entity",
     "service",
     "migration",
-    "util"
+    "util",
+    "macros"
 ]
 [dependencies]
 api = { path = "api" }
 
 [workspace.dependencies]
+api = { path = "api" }
+entity = { path = "entity" }
+migration = { path = "migration" }
+service = { path = "service" }
+util = { path = "util" }
+macros = { path = "macros" }
+
 wechat-pay-rust-sdk = { version = "0.2.8", features = ["async"] }
 actix-web = { version = "4.4.1" }
 tokio = { version = "1.35.1", features = ["macros"] }
