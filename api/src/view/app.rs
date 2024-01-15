@@ -131,6 +131,8 @@ async fn search(
     });
     Ok(HttpResponse::Ok().json(resp_ok(app_infos)))
 }
+
+/// 查看应用版本
 #[get("/{country}/{app_id}/version")]
 #[instrument(skip(state))]
 async fn versions(
