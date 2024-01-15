@@ -4,6 +4,7 @@ use std::env;
 use std::sync::Mutex;
 use std::time::Duration;
 use tracing::log;
+use crate::base::config::Config;
 
 pub struct AppState {
     pub users: Mutex<Vec<String>>,
@@ -12,8 +13,8 @@ pub struct AppState {
 
 impl AppState {
     pub async fn new() -> Self {
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
-        let mut opt = ConnectOptions::new(database_url);
+        let config = Config::from_env().unwrap();
+        let mut opt = ConnectOptions::new(config.database_url);
         opt.max_connections(5)
             .sqlx_logging(false)
             .sqlx_logging_level(log::LevelFilter::Debug)

@@ -64,7 +64,6 @@ async fn start() -> std::io::Result<()> {
     } else {
         sub.init();
     }
-    dotenvy::dotenv().ok();
     let app_state = actix_web::web::Data::new(AppState::new().await);
     let governor_conf = GovernorConfigBuilder::default()
         .key_extractor(RequestLimit::new())
