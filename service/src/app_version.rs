@@ -1,6 +1,8 @@
 use ::entity::app::AppCountry;
 use ::entity::app_version::NewModel;
 use ::entity::AppVersion;
+use ::entity::AppVersionColumn;
+use ::entity::AppVersionModel;
 use sea_orm::*;
 use tracing::instrument;
 use util::sql::{Sql, SqlTrait};
@@ -53,6 +55,21 @@ pub async fn search_by_appids(
             [country.into()],
         ))
         .into_model::<NewModel>()
+        .all(conn)
+        .await
+}
+#[instrument(skip(conn))]
+pub async fn search_by_appid(
+    conn: &DbConn,
+    country: AppCountry,
+    app_id: &str,
+) -> Result<Vec<AppVersionModel>, DbErr> {
+    AppVersion::find()
+        .filter(
+            AppVersionColumn::Country
+                .eq(country)
+                .and(AppVersionColumn::AppId.eq(app_id)),
+        )
         .all(conn)
         .await
 }

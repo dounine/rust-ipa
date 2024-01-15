@@ -1,8 +1,9 @@
 use crate::app::AppCountry;
 use sea_orm::entity::prelude::*;
 use sea_orm::FromQueryResult;
+use serde::Serialize;
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
 #[sea_orm(table_name = "app_version")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]

@@ -1,6 +1,6 @@
 mod api;
-mod view;
 pub mod base;
+mod view;
 
 pub use api::main;
 pub use view::*;

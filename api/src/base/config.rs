@@ -1,5 +1,5 @@
-use std::io::Error;
 use serde::Deserialize;
+use std::io::Error;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
@@ -9,7 +9,6 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Result<Self, Error> {
         dotenvy::dotenv().ok();
-        envy::from_env::<Config>()
-            .map_err(|e| Error::new(std::io::ErrorKind::Other, e))
+        envy::from_env::<Config>().map_err(|e| Error::new(std::io::ErrorKind::Other, e))
     }
 }

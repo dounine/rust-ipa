@@ -3,7 +3,7 @@ use crate::base::response::{resp_list, resp_ok, resp_ok_empty};
 use crate::base::state::AppState;
 use crate::view::base::deserialize_strings_split;
 use crate::view::base::PageOptions;
-use actix_web::web::{scope, Data, Json, Query, ServiceConfig};
+use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
 use entity::app::{AppCountry, AppPlatform};
 use migration::DbErr;
@@ -63,6 +63,7 @@ struct SearchApp {
     info: Option<AppInfo>,
 }
 
+/// 搜索应用
 #[get("/search")]
 #[instrument(skip(state))]
 async fn search(
@@ -88,7 +89,8 @@ async fn search(
             apps.push(x.clone());
         }
     });
-    let versions =
+
+    let version_list =
         service::app_version::search_by_appids(&state.conn, query.country.clone(), apps.clone())
             .await?;
     let mut app_infos: Vec<SearchApp> = vec![];
@@ -103,7 +105,7 @@ async fn search(
                 info: None,
             }),
             Some(info) => {
-                let version_size = versions
+                let version_size = version_list
                     .iter()
                     .find(|x| x.app_id == info.app_id)
                     .map(|x| (x.version.clone(), x.size.clone()))
@@ -129,12 +131,29 @@ async fn search(
     });
     Ok(HttpResponse::Ok().json(resp_ok(app_infos)))
 }
+#[get("/{country}/{app_id}/version")]
+#[instrument(skip(state))]
+async fn versions(
+    state: Data<AppState>,
+    query: Path<(AppCountry, String)>,
+) -> Result<HttpResponse, MyError> {
+    let (country, app_id) = query.into_inner();
+    let (app_info, app_versions) = try_join!(
+        service::app::search_by_appid(&state.conn, country, app_id.as_str()),
+        service::app_version::search_by_appid(&state.conn, country, app_id.as_str())
+    )?;
+    Ok(resp_ok(serde_json::json!({
+        "app_info": app_info,
+        "versions": app_versions
+    })).into())
+}
 
 pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
-        scope("/apps")
+        scope("/app")
             .service(lists)
             .service(create)
-            .service(search),
+            .service(search)
+            .service(versions),
     );
 }

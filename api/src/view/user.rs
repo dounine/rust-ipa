@@ -78,7 +78,7 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
 
 pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
-        scope("/users")
+        scope("/user")
             .service(user_list)
             .service(user_detail)
             .service(user_login),
