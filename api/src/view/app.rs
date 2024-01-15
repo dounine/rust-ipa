@@ -1,6 +1,7 @@
 use crate::base::error::MyError;
 use crate::base::response::{resp_list, resp_ok, resp_ok_empty};
 use crate::base::state::AppState;
+use crate::base::token::UserData;
 use crate::view::base::deserialize_strings_split;
 use crate::view::base::PageOptions;
 use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
@@ -133,7 +134,7 @@ async fn search(
 }
 
 /// 查看应用版本
-#[get("/{country}/{app_id}/version")]
+#[get("/{country}/{app_id}/versions")]
 #[instrument(skip(state))]
 async fn versions(
     state: Data<AppState>,
@@ -142,12 +143,36 @@ async fn versions(
     let (country, app_id) = query.into_inner();
     let (app_info, app_versions) = try_join!(
         service::app::search_by_appid(&state.conn, country, app_id.as_str()),
-        service::app_version::search_by_appid(&state.conn, country, app_id.as_str())
+        service::app_version::search_by_appid(&state.conn, country, app_id.as_str()),
     )?;
     Ok(resp_ok(serde_json::json!({
         "app_info": app_info,
         "versions": app_versions
-    })).into())
+    }))
+    .into())
+}
+
+#[get("/{country}/{app_id}/latest_version")]
+#[instrument(skip(state))]
+async fn latest_version(
+    state: Data<AppState>,
+    user_data: UserData,
+    query: Path<(AppCountry, String)>,
+) -> Result<HttpResponse, MyError> {
+    let (country, app_id) = query.into_inner();
+    let (app_info, latest_version, app_version_dump, user_dump) = try_join!(
+        service::app::search_by_appid(&state.conn, country, app_id.as_str()),
+        service::app_version::latest_version_by_appid(&state.conn, country, app_id.as_str()),
+        service::dump::search_by_appid(&state.conn, country, app_id.as_str()),
+        service::user_dump::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
+    )?;
+    Ok(resp_ok(serde_json::json!({
+        "app_info": app_info,
+        "version": latest_version,
+        "dump_status": app_version_dump.map(|x|x.status),
+        "user_dumped": user_dump.is_some()
+    }))
+    .into())
 }
 
 pub fn configure(cfg: &mut ServiceConfig) {
@@ -156,6 +181,7 @@ pub fn configure(cfg: &mut ServiceConfig) {
             .service(lists)
             .service(create)
             .service(search)
-            .service(versions),
+            .service(versions)
+            .service(latest_version),
     );
 }

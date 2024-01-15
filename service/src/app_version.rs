@@ -75,6 +75,24 @@ pub async fn search_by_appid(
         .await
 }
 
+#[instrument(skip(conn))]
+pub async fn latest_version_by_appid(
+    conn: &DbConn,
+    country: AppCountry,
+    app_id: &str,
+) -> Result<Option<AppVersionModel>, DbErr> {
+    AppVersion::find()
+        .filter(
+            AppVersionColumn::Country
+                .eq(country)
+                .and(AppVersionColumn::AppId.eq(app_id)),
+        )
+        .order_by_desc(AppVersionColumn::CreatedAt)
+        .limit(1)
+        .one(conn)
+        .await
+}
+
 #[cfg(test)]
 mod tests {
     use entity::app::AppCountry;

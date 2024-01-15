@@ -26,7 +26,7 @@ pub enum DumpStatus {
     Off = 8,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
 #[sea_orm(table_name = "dump")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
