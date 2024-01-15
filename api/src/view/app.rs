@@ -168,7 +168,7 @@ async fn latest_version(
     )?;
     Ok(resp_ok(serde_json::json!({
         "app_info": app_info,
-        "version": latest_version,
+        "latest_version": latest_version,
         "dump_status": app_version_dump.map(|x|x.status),
         "user_dumped": user_dump.is_some()
     }))
