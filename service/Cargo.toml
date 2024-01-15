@@ -12,6 +12,7 @@ entity = { path = "../entity" }
 
 sea-orm = { workspace = true, features = ["sqlx-postgres", "runtime-async-std-native-tls", "debug-print"] }
 tracing = { workspace = true }
+chrono = { workspace = true }
 [dev-dependencies]
 dotenvy = { workspace = true }
 tracing = { workspace = true }

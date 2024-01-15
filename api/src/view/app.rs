@@ -7,6 +7,7 @@ use crate::view::base::PageOptions;
 use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
 use entity::app::{AppCountry, AppPlatform};
+use entity::dump::DumpStatus;
 use migration::DbErr;
 use serde::{Deserialize, Serialize};
 use tokio::try_join;
@@ -173,6 +174,73 @@ async fn latest_version(
         "user_dumped": user_dump.is_some()
     }))
     .into())
+}
+
+#[derive(Deserialize, Debug)]
+struct DumpParam {
+    country: AppCountry,
+    appid: String,
+    version: String,
+    name: String,
+    bundle_id: String,
+    icon: String,
+    genres: String,
+    size: i64,
+    content: Option<String>, //base64后的json数据结构
+}
+
+#[post("dump")]
+#[instrument(skip(state))]
+async fn dump_app(
+    state: Data<AppState>,
+    user_data: UserData,
+    data: Json<DumpParam>,
+) -> Result<HttpResponse, MyError> {
+    let data = data.into_inner();
+    let user_dump_info = service::user_dump::search_by_user(
+        &state.conn,
+        data.country.clone(),
+        data.appid.as_str(),
+        user_data.id,
+    )
+    .await?;
+    if user_dump_info.is_some() {
+        return MyError::msg("您已经提交提取请求，请勿重复提取").into();
+    }
+    let user_dump_today =
+        service::user_dump::search_by_user_today(&state.conn, user_data.id).await?;
+    if user_dump_today.len() >= 10 {
+        return MyError::msg("您今天已经提交了10次提取请求，请明天再来").into();
+    }
+    let app_version = service::app_version::search_by_appid_and_version(
+        &state.conn,
+        data.country.clone(),
+        data.appid.as_str(),
+        data.version.as_str(),
+    )
+    .await?;
+    if app_version.is_none() {
+        if let Some(latest_dump_info) = service::dump::search_latest_version_by_appid(
+            &state.conn,
+            data.country.clone(),
+            data.appid.as_str(),
+        )
+        .await?
+        {
+            if vec![DumpStatus::UnDump, DumpStatus::Check, DumpStatus::Pay]
+                .into_iter()
+                .find(|x| x == &latest_dump_info.status)
+                .is_some()
+            {
+                return MyError::msg("此应用无法提取，请提取其它应用。").into();
+            }
+        }
+    }
+    let user_coins = service::pay_record::user_coin_sum(&state.conn, user_data.id).await?;
+    if user_coins.is_none() || user_coins.unwrap() < 1 {
+        return MyError::msg("为防止人机恶意提取、每次提取应用需要0.01个金币噢、请购买后再提取。").into();
+    }
+    Ok(resp_ok_empty().into())
 }
 
 pub fn configure(cfg: &mut ServiceConfig) {
