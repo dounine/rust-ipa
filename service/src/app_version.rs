@@ -70,6 +70,7 @@ pub async fn search_by_appid(
                 .eq(country)
                 .and(AppVersionColumn::AppId.eq(app_id)),
         )
+        .order_by_desc(AppVersionColumn::CreatedAt)
         .all(conn)
         .await
 }
