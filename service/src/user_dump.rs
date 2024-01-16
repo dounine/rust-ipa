@@ -25,11 +25,35 @@ pub async fn search_by_user(
 }
 
 #[instrument(skip(conn))]
-pub async fn search_by_user_today(conn: &DbConn, user_id: i32) -> Result<Vec<UserDumpModel>, DbErr> {
+pub async fn create(
+    conn: &DatabaseTransaction,
+    country: AppCountry,
+    app_id: &str,
+    version: &str,
+    user_id: i32,
+) -> Result<(), DbErr> {
+    UserDumpActiveModel {
+        country: Set(country),
+        app_id: Set(app_id.to_string()),
+        version: Set(version.to_string()),
+        user_id: Set(user_id),
+        ..Default::default()
+    }
+    .insert(conn)
+    .await
+    .map(|x| ())
+}
+
+#[instrument(skip(conn))]
+pub async fn search_by_user_today(
+    conn: &DbConn,
+    user_id: i32,
+) -> Result<Vec<UserDumpModel>, DbErr> {
     let today = chrono::Local::now()
         .naive_local()
         .date()
-        .and_hms_opt(0, 0, 0).unwrap();
+        .and_hms_opt(0, 0, 0)
+        .unwrap();
     UserDump::find()
         .filter(
             UserDumpColumn::UserId

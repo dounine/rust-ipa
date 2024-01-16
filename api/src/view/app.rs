@@ -8,6 +8,9 @@ use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
 use entity::app::{AppCountry, AppPlatform};
 use entity::dump::DumpStatus;
+use entity::pay_record::PayRecordType;
+use entity::DumpModel;
+use migration::sea_orm::TransactionTrait;
 use migration::DbErr;
 use serde::{Deserialize, Serialize};
 use tokio::try_join;
@@ -176,16 +179,18 @@ async fn latest_version(
     .into())
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 struct DumpParam {
     country: AppCountry,
-    appid: String,
+    app_id: String,
     version: String,
     name: String,
     bundle_id: String,
     icon: String,
+    link: String,
     genres: String,
     size: i64,
+    price: i32,
     content: Option<String>, //base64后的json数据结构
 }
 
@@ -200,7 +205,7 @@ async fn dump_app(
     let user_dump_info = service::user_dump::search_by_user(
         &state.conn,
         data.country.clone(),
-        data.appid.as_str(),
+        data.app_id.as_str(),
         user_data.id,
     )
     .await?;
@@ -215,15 +220,16 @@ async fn dump_app(
     let app_version = service::app_version::search_by_appid_and_version(
         &state.conn,
         data.country.clone(),
-        data.appid.as_str(),
+        data.app_id.as_str(),
         data.version.as_str(),
     )
     .await?;
     if app_version.is_none() {
-        if let Some(latest_dump_info) = service::dump::search_latest_version_by_appid(
+        if let Some(latest_dump_info) = service::dump::search_info(
             &state.conn,
             data.country.clone(),
-            data.appid.as_str(),
+            data.app_id.as_str(),
+            data.version.as_str(),
         )
         .await?
         {
@@ -238,8 +244,39 @@ async fn dump_app(
     }
     let user_coins = service::pay_record::user_coin_sum(&state.conn, user_data.id).await?;
     if user_coins.is_none() || user_coins.unwrap() < 1 {
-        return MyError::msg("为防止人机恶意提取、每次提取应用需要0.01个金币噢、请购买后再提取。").into();
+        //放后面付费率会下降
+        return MyError::msg("为防止人机恶意提取，每次提取应用需要0.01个金币，请购买后再提取。")
+            .into();
     }
+
+    let tx = state.conn.begin().await?;
+    service::pay_record::user_coin_change(&tx, user_data.id, 1, PayRecordType::Extract).await?;
+    service::user_dump::create(
+        &tx,
+        data.country.clone(),
+        data.app_id.as_str(),
+        data.version.as_str(),
+        user_data.id,
+    )
+    .await?;
+    service::dump::create(
+        &tx,
+        DumpModel {
+            country: data.country.clone(),
+            app_id: data.app_id.clone(),
+            version: data.version.clone(),
+            name: data.name.clone(),
+            icon: data.icon.clone(),
+            link: data.link.clone(),
+            bundle_id: data.bundle_id.clone(),
+            size: data.size,
+            price: data.price,
+            status: DumpStatus::Waiting,
+            created_at: util::time::now(),
+        },
+    )
+    .await?;
+    tx.commit().await?;
     Ok(resp_ok_empty().into())
 }
 
@@ -250,6 +287,55 @@ pub fn configure(cfg: &mut ServiceConfig) {
             .service(create)
             .service(search)
             .service(versions)
-            .service(latest_version),
+            .service(latest_version)
+            .service(dump_app),
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::app::DumpParam;
+    use crate::base::state::AppState;
+    use actix_web::web::{Data, scope};
+    use actix_web::{test, App};
+    use tracing::debug;
+    use entity::app::AppCountry;
+
+    #[tokio::test]
+    async fn test_dump() {
+        std::env::set_var("RUST_LOG", "debug");
+        tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::DEBUG)
+            .init();
+        let app = App::new()
+            .service(
+                scope("/app")
+                    .service(super::dump_app)
+            )
+            .app_data(Data::new(AppState::new().await));
+        let mut app = test::init_service(app).await;
+        let req = test::TestRequest::post()
+            .uri("/app/dump")
+            .set_json(DumpParam {
+                country: AppCountry::Cn,
+                app_id: "1".to_string(),
+                version: "1.0.0".to_string(),
+                name: "微信".to_string(),
+                bundle_id: "com.tencent.wechat".to_string(),
+                icon: "https://baidu.com".to_string(),
+                link: "https://baidu.com".to_string(),
+                genres: "社交".to_string(),
+                size: 1024 * 10,
+                price: 0,
+                content: Some("".to_string()),
+            })
+            .insert_header(("Authorization", "Bearer 1"))
+            .to_request();
+        let resp = test::call_service(&mut app, req).await;
+        let status = resp.status();
+        let body = test::read_body(resp).await;
+        let body = String::from_utf8(body.to_vec()).unwrap();
+        debug!("body {}", body);
+        assert_eq!(status, 200);
+    }
 }

@@ -11,3 +11,4 @@ path = "src/lib.rs"
 
 [dependencies]
 md5 = { workspace = true }
+chrono = { workspace = true }
