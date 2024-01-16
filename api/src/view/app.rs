@@ -11,7 +11,6 @@ use entity::dump::DumpStatus;
 use entity::pay_record::PayRecordType;
 use entity::DumpModel;
 use migration::sea_orm::TransactionTrait;
-use migration::DbErr;
 use serde::{Deserialize, Serialize};
 use tokio::try_join;
 use tracing::instrument;

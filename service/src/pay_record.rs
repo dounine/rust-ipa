@@ -2,8 +2,6 @@ use ::entity::pay_record::PayRecordType;
 use ::entity::PayRecord;
 use ::entity::PayRecordActiveModel;
 use ::entity::PayRecordColumn;
-use ::entity::PayRecordModel;
-use sea_orm::sea_query::Expr;
 use sea_orm::*;
 use tracing::instrument;
 
@@ -43,5 +41,5 @@ pub async fn user_coin_change(
     }
     .insert(conn)
     .await
-    .map(|x| ())
+    .map(|_| ())
 }

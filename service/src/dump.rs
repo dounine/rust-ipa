@@ -31,7 +31,7 @@ pub async fn create(conn: &DatabaseTransaction, data: DumpModel) -> Result<(), D
         .on_empty_do_nothing()
         .exec(conn)
         .await
-        .map(|x| ())
+        .map(|_| ())
 }
 
 #[instrument(skip(conn))]

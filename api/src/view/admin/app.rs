@@ -5,8 +5,6 @@ use tracing::instrument;
 
 use entity::app::AppCountry;
 use entity::dump::DumpStatus;
-use migration::sea_orm::TransactionTrait;
-
 use crate::base::error::MyError;
 use crate::base::response::resp_ok_empty;
 use crate::base::state::AppState;

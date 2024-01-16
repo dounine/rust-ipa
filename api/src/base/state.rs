@@ -1,7 +1,6 @@
 use crate::base::config::Config;
 use migration::sea_orm::{Database, DatabaseConnection};
 use service::sea_orm::ConnectOptions;
-use std::env;
 use std::sync::Mutex;
 use std::time::Duration;
 use tracing::log;

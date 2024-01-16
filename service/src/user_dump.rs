@@ -41,7 +41,7 @@ pub async fn create(
     }
     .insert(conn)
     .await
-    .map(|x| ())
+    .map(|_| ())
 }
 
 #[instrument(skip(conn))]

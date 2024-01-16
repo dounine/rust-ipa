@@ -1,29 +1,25 @@
-use crate::base::error::MyError;
-use crate::base::response::{resp_list, resp_ok, resp_ok_empty};
-use crate::base::state::AppState;
-use crate::base::token;
-use crate::base::token::UserData;
-use crate::view::base::PageOptions;
-use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
-use actix_web::{get, post, HttpResponse};
-use entity::user::{Model, UserStatus, UserType};
-use serde::Deserialize;
+use actix_web::{HttpResponse, post};
+use actix_web::web::{Data, Path, scope, ServiceConfig};
 use tracing::instrument;
-use tracing::log::debug;
 use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo};
 use wechat_pay_rust_sdk::pay::WechatPay;
 
+use crate::base::error::MyError;
+use crate::base::response::resp_ok_empty;
+use crate::base::state::AppState;
+
 #[post("/{id}")]
 #[instrument(skip(state))]
-async fn pay(state: Data<AppState>, id: Path<String>) -> Result<HttpResponse, MyError> {
+async fn pay(state: Data<AppState>, _id: Path<String>) -> Result<HttpResponse, MyError> {
     let wechat_pay = WechatPay::from_env();
+    let _conn = &state.conn;
     let pay_params = H5Params::new(
         "测试支付1分",
         "1243243",
         1.into(),
         H5SceneInfo::new("8.210.234.214", "rust收钱", "https://crates.io"),
     );
-    wechat_pay.h5_pay(pay_params);
+    wechat_pay.h5_pay(pay_params).await.unwrap();
 
     Ok(HttpResponse::Ok().json(resp_ok_empty()))
     //     .await

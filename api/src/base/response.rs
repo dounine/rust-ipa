@@ -1,4 +1,3 @@
-use crate::base::error::MyError;
 use actix_web::body::BoxBody;
 use actix_web::{HttpRequest, HttpResponse, Responder};
 use serde::{Deserialize, Serialize};

@@ -3,8 +3,6 @@ use ::entity::dump::DumpStatus;
 use ::entity::Dump;
 use ::entity::DumpActiveModel;
 use ::entity::DumpColumn;
-use ::entity::DumpModel;
-use sea_orm::sea_query::OnConflict;
 use sea_orm::*;
 use std::fmt::Debug;
 use tracing::instrument;

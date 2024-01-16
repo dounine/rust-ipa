@@ -6,7 +6,7 @@ use crate::base::token::UserData;
 use crate::view::base::PageOptions;
 use actix_web::web::{scope, Data, Json, Path, Query, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
-use entity::user::{Model, UserStatus, UserType};
+use entity::user::{UserStatus, UserType};
 use serde::Deserialize;
 use tracing::instrument;
 use tracing::log::debug;
