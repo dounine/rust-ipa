@@ -19,7 +19,7 @@ pub enum PayRecordType {
     Refund = 5,
 }
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Eq)]
 #[sea_orm(table_name = "pay_record")]
 pub struct Model {
     #[sea_orm(primary_key)]

@@ -2,6 +2,7 @@ use ::entity::pay_record::PayRecordType;
 use ::entity::PayRecord;
 use ::entity::PayRecordActiveModel;
 use ::entity::PayRecordColumn;
+use ::entity::PayRecordModel;
 use sea_orm::*;
 use tracing::instrument;
 
@@ -16,6 +17,24 @@ pub async fn user_coin_sum(conn: &DbConn, user_id: i32) -> Result<Option<i64>, D
         .into_tuple()
         .one(conn)
         .await
+}
+
+/// 用户金币记录
+#[instrument(skip(conn))]
+pub async fn user_records(
+    conn: &DbConn,
+    user_id: i32,
+    offset: u64,
+    limit: u64,
+) -> Result<(Vec<PayRecordModel>, u64), DbErr> {
+    let paginator = PayRecord::find()
+        .filter(PayRecordColumn::UserId.eq(user_id))
+        .paginate(conn, limit);
+    let num_pages = paginator.num_pages().await?;
+    paginator
+        .fetch_page(offset)
+        .await
+        .map(|list| (list, num_pages))
 }
 
 /// 用户金币变动
