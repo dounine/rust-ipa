@@ -42,6 +42,7 @@ fn init_router(cfg: &mut ServiceConfig) {
     cfg.configure(crate::user::configure);
     cfg.configure(crate::app::configure);
     cfg.configure(crate::pay::configure);
+    cfg.configure(crate::pay_record::configure);
 }
 
 #[actix_web::main]
