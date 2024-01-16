@@ -13,7 +13,7 @@ pub enum PayRecordType {
     Download = 2,
     //赠送
     Give = 3,
-    //收到
+    //收款
     Receive = 4,
     //退款
     Refund = 5,

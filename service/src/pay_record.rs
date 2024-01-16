@@ -18,6 +18,31 @@ pub async fn user_coin_sum(conn: &DbConn, user_id: i32) -> Result<Option<i64>, D
         .one(conn)
         .await
 }
+/// 转帐
+#[instrument(skip(conn))]
+pub async fn transfer(
+    conn: &DbConn,
+    from_user_id: i32,
+    to_user_id: i32,
+    coin: u32,
+) -> Result<(), DbErr> {
+    let tx = conn.begin().await?;
+    let user_blance: i64 = PayRecord::find()
+        .select_only()
+        .column_as(PayRecordColumn::Coin.sum(), "coin_sum")
+        .filter(PayRecordColumn::UserId.eq(from_user_id))
+        .into_tuple()
+        .one(conn)
+        .await?
+        .unwrap_or(0);
+    if user_blance < coin as i64 {
+        return Err(DbErr::Custom("余额不足".to_string()));
+    }
+    user_coin_change(&tx, from_user_id, coin as i32, PayRecordType::Give).await?;
+    user_coin_change(&tx, to_user_id, coin as i32, PayRecordType::Receive).await?;
+    tx.commit().await?;
+    Ok(())
+}
 
 /// 用户金币记录
 #[instrument(skip(conn))]
