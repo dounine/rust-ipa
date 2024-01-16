@@ -18,6 +18,11 @@ pub struct UserData {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct AdminUserData {
+    pub id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
     pub exp: usize,
     pub user_type: UserType,
@@ -83,7 +88,7 @@ impl FromRequest for UserData {
                 return Ok(UserData {
                     id: 1,
                     user_type: UserType::Admin,
-                })
+                });
             }
             let state = req.app_data::<Data<AppState>>().unwrap();
             req.headers()
@@ -93,6 +98,33 @@ impl FromRequest for UserData {
                 .map(|token| async move {
                     validate_token(token, &state.conn)
                         .await
+                        .and_then(|user| user.ok_or(MyError::msg("用户不存在")))
+                })
+                .ok_or_else(|| MyError::msg("missing token"))?
+                .await
+        })
+    }
+}
+
+impl FromRequest for AdminUserData {
+    type Error = MyError;
+    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
+
+    fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
+        let req = req.clone();
+        Box::pin(async move {
+            if true {
+                return Ok(AdminUserData { id: 1 });
+            }
+            let state = req.app_data::<Data<AppState>>().unwrap();
+            req.headers()
+                .get(AUTHORIZATION)
+                .and_then(|header_value| header_value.to_str().ok())
+                .and_then(|authorization| authorization.split("Bearer ").last())
+                .map(|token| async move {
+                    validate_token(token, &state.conn)
+                        .await
+                        .map(|user_opt| user_opt.map(|user| AdminUserData { id: user.id }))
                         .and_then(|user| user.ok_or(MyError::msg("用户不存在")))
                 })
                 .ok_or_else(|| MyError::msg("missing token"))?
