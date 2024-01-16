@@ -3,6 +3,7 @@ use ::entity::PayRecord;
 use ::entity::PayRecordActiveModel;
 use ::entity::PayRecordColumn;
 use ::entity::PayRecordModel;
+use sea_orm::sea_query::OnConflict;
 use sea_orm::*;
 use tracing::instrument;
 
@@ -38,8 +39,26 @@ pub async fn transfer(
     if user_blance < coin as i64 {
         return Err(DbErr::Custom("余额不足".to_string()));
     }
-    user_coin_change(&tx, from_user_id, coin as i32, PayRecordType::Give).await?;
-    user_coin_change(&tx, to_user_id, coin as i32, PayRecordType::Receive).await?;
+    let from_active = PayRecordActiveModel {
+        user_id: Set(from_user_id),
+        coin: Set(-(coin as i32)),
+        record_type: Set(PayRecordType::Give),
+        ..Default::default()
+    };
+    let to_active = PayRecordActiveModel {
+        user_id: Set(to_user_id),
+        coin: Set(coin as i32),
+        record_type: Set(PayRecordType::Receive),
+        ..Default::default()
+    };
+    PayRecord::insert_many([from_active, to_active])
+        .on_conflict(
+            OnConflict::column(PayRecordColumn::Id)
+                .do_nothing()
+                .to_owned(),
+        )
+        .exec(&tx)
+        .await?;
     tx.commit().await?;
     Ok(())
 }
