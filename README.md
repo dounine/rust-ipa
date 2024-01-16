@@ -15,3 +15,7 @@ sea-orm-cli migrate down
 ```bash
 sea-orm-cli migrate up
 ```
+自动删除并创
+```bash
+sea-orm-cli migrate refresh
+```
