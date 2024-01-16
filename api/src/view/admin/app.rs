@@ -1,5 +1,5 @@
-use actix_web::{HttpResponse, patch};
-use actix_web::web::{Data, Json, scope, ServiceConfig};
+use actix_web::web::{scope, Data, Json, ServiceConfig};
+use actix_web::{patch, HttpResponse};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -17,11 +17,13 @@ struct DumpFinishParam {
     app_id: String,
     country: AppCountry,
     version: String,
+    status: DumpStatus,
 }
 
-#[patch("/dump_finish")]
+/// 修改应用dump状态为完成
+#[patch("/change_status")]
 #[instrument(skip(state))]
-async fn dump_finish(
+async fn dump_change_status(
     state: Data<AppState>,
     _admin_user_data: AdminUserData,
     query: Json<DumpFinishParam>,
@@ -30,20 +32,21 @@ async fn dump_finish(
         app_id,
         country,
         version,
+        status,
     } = query.into_inner();
-    service::admin::dump::change_status(&state.conn, country, app_id, version, DumpStatus::Done)
+    service::admin::dump::change_status(&state.conn, country, app_id, version, status)
         .await?;
     Ok(resp_ok_empty().into())
 }
 
 pub fn configure(cfg: &mut ServiceConfig) {
-    cfg.service(scope("/admin/app").service(dump_finish));
+    cfg.service(scope("/admin/app").service(dump_change_status));
 }
 
 #[cfg(test)]
 mod tests {
-    use actix_web::{App, test};
-    use actix_web::web::{Data, scope};
+    use actix_web::web::{scope, Data};
+    use actix_web::{test, App};
     use tracing::debug;
 
     use entity::app::AppCountry;
@@ -57,15 +60,16 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
         let app = App::new()
-            .service(scope("/admin/app").service(super::dump_finish))
+            .service(scope("/admin/app").service(super::dump_change_status))
             .app_data(Data::new(AppState::new().await));
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::patch()
-            .uri("/admin/app/dump_finish")
+            .uri("/admin/app/change_status")
             .set_json(DumpFinishParam {
                 country: AppCountry::Cn,
                 app_id: "1".to_string(),
                 version: "1.0.0".to_string(),
+                status: entity::dump::DumpStatus::Done,
             })
             .insert_header(("Authorization", "Bearer 1"))
             .to_request();
