@@ -1,10 +1,11 @@
+use sea_orm::*;
+use tracing::instrument;
+
 use ::entity::app::AppCountry;
 use ::entity::app_version::NewModel;
 use ::entity::AppVersion;
 use ::entity::AppVersionColumn;
 use ::entity::AppVersionModel;
-use sea_orm::*;
-use tracing::instrument;
 use util::sql::{Sql, SqlTrait};
 
 #[instrument(skip(conn))]
@@ -114,11 +115,12 @@ pub async fn latest_version_by_appid(
 
 #[cfg(test)]
 mod tests {
-    use entity::app::AppCountry;
-    use sea_orm::{ConnectOptions, Database, Value};
     use std::env;
-    use std::time::Duration;
-    use tracing::{debug, info, log};
+
+    use sea_orm::Database;
+    use tracing::{info};
+
+    use entity::app::AppCountry;
 
     #[tokio::test]
     async fn test_infos() {

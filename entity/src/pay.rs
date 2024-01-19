@@ -13,7 +13,7 @@ pub enum PayPlatform {
 #[sea_orm(table_name = "pay")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i32,
+    pub id: String,
     pub user_id: i32,
     pub money: i32,
     pub coin: i32,

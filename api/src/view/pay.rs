@@ -32,7 +32,7 @@ async fn weixin_notify(
         .await
         .map_err(|e| ApiError::msg(e.to_string()))?;
     debug!("pay notify decrypt result: {:?}", result);
-
+    service::pay::change_payed_status(&state.conn, result.out_trade_no).await?;
     Ok(HttpResponse::Ok().json(serde_json::json!({
         "code":"SUCCESS",
         "message":"成功",

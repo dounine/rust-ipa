@@ -3,7 +3,7 @@ use sea_orm_migration::prelude::*;
 use entity::pay::PayPlatform;
 use entity::{Pay, PayActiveModel};
 
-use crate::sea_orm::prelude::DateTime;
+use crate::sea_orm::prelude::{DateTime};
 use crate::sea_orm::{ActiveModelTrait, EntityName, Set, TransactionTrait};
 
 #[derive(DeriveMigrationName)]
@@ -19,9 +19,8 @@ impl MigrationTrait for Migration {
                     .if_not_exists()
                     .col(
                         ColumnDef::new(Pays::Id)
-                            .integer()
+                            .string_len(32)
                             .not_null()
-                            .auto_increment()
                             .primary_key()
                             .comment("支付ID"),
                     )
@@ -103,7 +102,7 @@ impl MigrationTrait for Migration {
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayActiveModel {
-            id: Set(1),
+            id: Set("1".to_owned()),
             user_id: Set(1),
             money: Set(800),
             coin: Set(800),

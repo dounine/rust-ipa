@@ -15,8 +15,9 @@ pub async fn create_pay(
     platform: PayPlatform,
     money: i32,
     coin: i32,
-) -> Result<i32, ServiceError> {
+) -> Result<String, ServiceError> {
     let pay = PayActiveModel {
+        id: Set(util::uuid::uuid32()),
         user_id: Set(user_id),
         money: Set(money),
         coin: Set(coin),
@@ -32,8 +33,7 @@ pub async fn create_pay(
 #[instrument(skip(conn))]
 pub async fn change_payed_status(
     conn: &DbConn,
-    pay_id: i32,
-    user_id: i32,
+    pay_id: String,
 ) -> Result<(), ServiceError> {
     let tx = conn.begin().await?;
     let pay_info = Pay::find()
@@ -45,15 +45,14 @@ pub async fn change_payed_status(
             if info.payed {
                 return Err(ServiceError::Msg("订单已支付，请不要重复支付".to_string()));
             }
-            let coin = info.coin;
-            let mut acive_model: PayActiveModel = info.into();
+            let mut acive_model: PayActiveModel = info.clone().into();
             acive_model.payed = Set(true);
             acive_model.payed_time = Set(Some(util::time::now()));
             Pay::update(acive_model).exec(&tx).await?;
             super::pay_record::user_coin_change(
                 &tx,
-                user_id,
-                coin,
+                info.user_id,
+                info.coin,
                 entity::pay_record::PayRecordType::Charge,
             )
             .await?;
@@ -83,7 +82,7 @@ mod tests {
             .await
             .unwrap();
         debug!("pay_id: {}", pay_id);
-        super::change_payed_status(&conn, pay_id, 1).await
+        super::change_payed_status(&conn, pay_id).await
     }
 
     /// 测试订单不存在
@@ -96,7 +95,9 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        super::change_payed_status(&conn, -1, 1).await.unwrap();
+        super::change_payed_status(&conn, "-1".to_string())
+            .await
+            .unwrap();
     }
 
     /// 测试重复支付
@@ -113,7 +114,9 @@ mod tests {
             .await
             .unwrap();
         debug!("pay_id: {}", pay_id);
-        super::change_payed_status(&conn, pay_id, 1).await.unwrap();
-        super::change_payed_status(&conn, pay_id, 1).await.unwrap();
+        super::change_payed_status(&conn, pay_id.clone())
+            .await
+            .unwrap();
+        super::change_payed_status(&conn, pay_id).await.unwrap();
     }
 }
