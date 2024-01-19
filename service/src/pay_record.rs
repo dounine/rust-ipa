@@ -33,7 +33,7 @@ pub async fn transfer(
         .column_as(PayRecordColumn::Coin.sum(), "coin_sum")
         .filter(PayRecordColumn::UserId.eq(from_user_id))
         .into_tuple()
-        .one(conn)
+        .one(&tx)
         .await?
         .unwrap_or(0);
     if user_blance < coin as i64 {

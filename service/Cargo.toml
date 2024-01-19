@@ -9,7 +9,7 @@ publish = { workspace = true }
 [dependencies]
 util = { path = "../util" }
 entity = { path = "../entity" }
-
+thiserror = { workspace = true }
 sea-orm = { workspace = true, features = ["sqlx-postgres", "runtime-async-std-native-tls", "debug-print"] }
 tracing = { workspace = true }
 chrono = { workspace = true }
@@ -17,6 +17,7 @@ chrono = { workspace = true }
 dotenvy = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+sea-orm = { workspace = true}
 tokio = { workspace = true, features = ["macros", "rt"] }
 
 [features]

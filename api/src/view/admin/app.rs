@@ -3,12 +3,12 @@ use actix_web::{patch, HttpResponse};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use entity::app::AppCountry;
-use entity::dump::DumpStatus;
-use crate::base::error::MyError;
+use crate::base::error::ApiError;
 use crate::base::response::resp_ok_empty;
 use crate::base::state::AppState;
 use crate::base::token::AdminUserData;
+use entity::app::AppCountry;
+use entity::dump::DumpStatus;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct DumpFinishParam {
@@ -25,15 +25,14 @@ async fn dump_change_status(
     state: Data<AppState>,
     _admin_user_data: AdminUserData,
     query: Json<DumpFinishParam>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     let DumpFinishParam {
         app_id,
         country,
         version,
         status,
     } = query.into_inner();
-    service::admin::dump::change_status(&state.conn, country, app_id, version, status)
-        .await?;
+    service::admin::dump::change_status(&state.conn, country, app_id, version, status).await?;
     Ok(resp_ok_empty().into())
 }
 

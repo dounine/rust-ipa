@@ -1,4 +1,4 @@
-use crate::base::error::MyError;
+use crate::base::error::ApiError;
 use crate::base::response::{resp_list, resp_ok, resp_ok_empty};
 use crate::base::state::AppState;
 use crate::base::token::UserData;
@@ -17,7 +17,7 @@ use tracing::instrument;
 
 #[get("")]
 #[instrument(skip(state))]
-async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, MyError> {
+async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, ApiError> {
     let page = page.format();
     service::app::list(&state.conn, page.offset, page.limit)
         .await
@@ -31,7 +31,7 @@ async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpRe
 async fn create(
     state: Data<AppState>,
     form: Json<entity::AppModel>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     service::app::create(&state.conn, form.into_inner())
         .await
         .map(|_| resp_ok_empty())
@@ -73,7 +73,7 @@ struct SearchApp {
 async fn search(
     state: Data<AppState>,
     query: Query<SearchAppParam>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     let (search_apps, db_apps) = try_join!(
         service::app::search_by_name(&state.conn, &query.country, query.name.as_str()),
         service::app::search_by_appids(
@@ -142,7 +142,7 @@ async fn search(
 async fn versions(
     state: Data<AppState>,
     query: Path<(AppCountry, String)>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     let (country, app_id) = query.into_inner();
     let (app_info, app_versions) = try_join!(
         service::app::search_by_appid(&state.conn, country, app_id.as_str()),
@@ -161,7 +161,7 @@ async fn latest_version(
     state: Data<AppState>,
     user_data: UserData,
     query: Path<(AppCountry, String)>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     let (country, app_id) = query.into_inner();
     let (app_info, latest_version, app_version_dump, user_dump) = try_join!(
         service::app::search_by_appid(&state.conn, country, app_id.as_str()),
@@ -199,7 +199,7 @@ async fn dump_app(
     state: Data<AppState>,
     user_data: UserData,
     data: Json<DumpParam>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     let data = data.into_inner();
     let user_dump_info = service::user_dump::search_by_user(
         &state.conn,
@@ -209,12 +209,12 @@ async fn dump_app(
     )
     .await?;
     if user_dump_info.is_some() {
-        return MyError::msg("您已经提交提取请求，请勿重复提取").into();
+        return ApiError::msg("您已经提交提取请求，请勿重复提取").into();
     }
     let user_dump_today =
         service::user_dump::search_by_user_today(&state.conn, user_data.id).await?;
     if user_dump_today.len() >= 10 {
-        return MyError::msg("您今天已经提交了10次提取请求，请明天再来").into();
+        return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
     }
     let app_version = service::app_version::search_by_appid_and_version(
         &state.conn,
@@ -237,14 +237,14 @@ async fn dump_app(
                 .find(|x| x == &latest_dump_info.status)
                 .is_some()
             {
-                return MyError::msg("此应用无法提取，请提取其它应用。").into();
+                return ApiError::msg("此应用无法提取，请提取其它应用。").into();
             }
         }
     }
     let user_coins = service::pay_record::user_coin_sum(&state.conn, user_data.id).await?;
     if user_coins.is_none() || user_coins.unwrap() < 1 {
         //放后面付费率会下降
-        return MyError::msg("为防止人机恶意提取，每次提取应用需要0.01个金币，请购买后再提取。")
+        return ApiError::msg("为防止人机恶意提取，每次提取应用需要0.01个金币，请购买后再提取。")
             .into();
     }
 
@@ -295,10 +295,10 @@ pub fn configure(cfg: &mut ServiceConfig) {
 mod tests {
     use crate::app::DumpParam;
     use crate::base::state::AppState;
-    use actix_web::web::{Data, scope};
+    use actix_web::web::{scope, Data};
     use actix_web::{test, App};
-    use tracing::debug;
     use entity::app::AppCountry;
+    use tracing::debug;
 
     #[tokio::test]
     async fn test_dump() {
@@ -307,10 +307,7 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
         let app = App::new()
-            .service(
-                scope("/app")
-                    .service(super::dump_app)
-            )
+            .service(scope("/app").service(super::dump_app))
             .app_data(Data::new(AppState::new().await));
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::post()

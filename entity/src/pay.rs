@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 #[sea_orm(rs_type = "i16", db_type = "SmallInteger")]
 pub enum PayPlatform {
-    Weixin = 0,
+    Wechat = 0,
     Alipay = 1,
 }
 

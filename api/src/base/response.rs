@@ -23,7 +23,6 @@ impl<T: Serialize> Into<HttpResponse> for Response<T> {
     }
 }
 
-
 pub fn resp_ok<T: Serialize>(data: T) -> Response<T> {
     Response {
         ok: true,

@@ -1,4 +1,4 @@
-use crate::base::error::MyError;
+use crate::base::error::ApiError;
 use crate::base::state::AppState;
 use actix_web::dev::Payload;
 use actix_web::http::header::AUTHORIZATION;
@@ -36,7 +36,7 @@ fn with_exp(seconds: i64) -> usize {
     exp.timestamp() as usize
 }
 
-pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserData>, MyError> {
+pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserData>, ApiError> {
     decode::<Claims>(
         &token,
         &DecodingKey::from_secret(JWT_SECRET.as_ref()),
@@ -53,7 +53,7 @@ pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserDat
                         user_type: user.user_type,
                     })
                 })
-                .map_err(|e| MyError::DbError(e)),
+                .map_err(|e| ApiError::DbError(e)),
             UserType::Guest => Ok(Some(UserData {
                 id: 0,
                 user_type: UserType::Guest,
@@ -78,7 +78,7 @@ pub fn create_token(user_id: i32, user_type: UserType, exp: i64) -> Result<Strin
 }
 
 impl FromRequest for UserData {
-    type Error = MyError;
+    type Error = ApiError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
@@ -98,16 +98,16 @@ impl FromRequest for UserData {
                 .map(|token| async move {
                     validate_token(token, &state.conn)
                         .await
-                        .and_then(|user| user.ok_or(MyError::msg("用户不存在")))
+                        .and_then(|user| user.ok_or(ApiError::msg("用户不存在")))
                 })
-                .ok_or_else(|| MyError::msg("missing token"))?
+                .ok_or_else(|| ApiError::msg("missing token"))?
                 .await
         })
     }
 }
 
 impl FromRequest for AdminUserData {
-    type Error = MyError;
+    type Error = ApiError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _payload: &mut Payload) -> Self::Future {
@@ -125,9 +125,9 @@ impl FromRequest for AdminUserData {
                     validate_token(token, &state.conn)
                         .await
                         .map(|user_opt| user_opt.map(|user| AdminUserData { id: user.id }))
-                        .and_then(|user| user.ok_or(MyError::msg("用户不存在")))
+                        .and_then(|user| user.ok_or(ApiError::msg("用户不存在")))
                 })
-                .ok_or_else(|| MyError::msg("missing token"))?
+                .ok_or_else(|| ApiError::msg("missing token"))?
                 .await
         })
     }

@@ -89,6 +89,17 @@ impl MigrationTrait for Migration {
                     .to_owned(),
             )
             .await?;
+        manager
+            .create_index(
+                Index::create()
+                    .if_not_exists()
+                    .table(Pay.table_ref())
+                    .name("idx-pay-payed")
+                    .col(Pays::Id)
+                    .col(Pays::Payed)
+                    .to_owned(),
+            )
+            .await?;
         let conn = manager.get_connection();
         let tx = conn.begin().await?;
         PayActiveModel {
@@ -97,7 +108,7 @@ impl MigrationTrait for Migration {
             money: Set(800),
             coin: Set(800),
             payed: Set(true),
-            platform: Set(PayPlatform::Weixin),
+            platform: Set(PayPlatform::Wechat),
             payed_time: Set(Some(DateTime::default())),
             ..Default::default()
         }
@@ -114,6 +125,15 @@ impl MigrationTrait for Migration {
                     .if_exists()
                     .table(Pay.table_ref())
                     .name("idx-pay-created_at")
+                    .to_owned(),
+            )
+            .await?;
+        manager
+            .drop_index(
+                Index::drop()
+                    .if_exists()
+                    .table(Pay.table_ref())
+                    .name("idx-pay-payed")
                     .to_owned(),
             )
             .await?;

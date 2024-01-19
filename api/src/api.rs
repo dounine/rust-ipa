@@ -1,4 +1,4 @@
-use crate::base::error::MyError;
+use crate::base::error::ApiError;
 use crate::base::limit::RequestLimit;
 use crate::base::span::DomainRootSpanBuilder;
 use crate::base::state::AppState;
@@ -102,11 +102,11 @@ async fn start() -> std::io::Result<()> {
             .app_data(app_state.clone()) //global state
             .app_data(
                 QueryConfig::default()
-                    .error_handler(|err, _req| MyError::msg(err.to_string()).into()),
+                    .error_handler(|err, _req| ApiError::msg(err.to_string()).into()),
             )
             .app_data(
                 PathConfig::default()
-                    .error_handler(|err, _req| MyError::msg(err.to_string()).into()),
+                    .error_handler(|err, _req| ApiError::msg(err.to_string()).into()),
             )
             .wrap(TracingLogger::<DomainRootSpanBuilder>::new())
             .configure(init_router)

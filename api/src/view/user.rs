@@ -1,4 +1,4 @@
-use crate::base::error::MyError;
+use crate::base::error::ApiError;
 use crate::base::response::{resp_list, resp_ok};
 use crate::base::state::AppState;
 use crate::base::token;
@@ -16,7 +16,7 @@ use tracing::log::debug;
 async fn user_list(
     state: Data<AppState>,
     page: Query<PageOptions>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     debug!("进去store查询数据中...");
     let page = page.format();
     service::user::list_user(&state.conn, page.offset, page.limit)
@@ -32,7 +32,7 @@ async fn user_detail(
     state: Data<AppState>,
     user: UserData,
     id: Path<i32>,
-) -> Result<HttpResponse, MyError> {
+) -> Result<HttpResponse, ApiError> {
     service::user::find_user_by_id(&state.conn, id.into_inner())
         .await
         .map(|user| resp_ok(user))
@@ -48,7 +48,10 @@ struct LoginData {
 
 #[post("/login")]
 #[instrument(skip(state))]
-async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<HttpResponse, MyError> {
+async fn user_login(
+    state: Data<AppState>,
+    data: Json<LoginData>,
+) -> Result<HttpResponse, ApiError> {
     debug!("login data: {} {}", data.username, data.password);
     let user_query = if data.username.contains("@") {
         service::user::find_user_by_email(&state.conn, data.username.as_str()).await
@@ -58,10 +61,10 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
     user_query.map(|user| match user {
         Some(result) => {
             if result.status == UserStatus::Disable {
-                return MyError::msg("用户已被禁用").into();
+                return ApiError::msg("用户已被禁用").into();
             }
             if result.password.is_none() {
-                return MyError::msg("帐号或者密码错误").into();
+                return ApiError::msg("帐号或者密码错误").into();
             }
 
             match util::crypto::md5(data.password.as_str()) == result.password.unwrap_or_default() {
@@ -69,10 +72,10 @@ async fn user_login(state: Data<AppState>, data: Json<LoginData>) -> Result<Http
                     let token = token::create_token(1, UserType::User, 30).unwrap();
                     Ok(resp_ok(token).into())
                 }
-                false => MyError::msg("帐号或者密码错误").into(),
+                false => ApiError::msg("帐号或者密码错误").into(),
             }
         }
-        None => MyError::msg("用户不存在").into(),
+        None => ApiError::msg("用户不存在").into(),
     })?
 }
 
