@@ -14,6 +14,9 @@ pub enum ApiError {
     ServiceError(#[from] service::error::ServiceError),
 }
 
+unsafe impl Send for ApiError {}
+unsafe impl Sync for ApiError {}
+
 impl ApiError {
     pub fn msg(msg: impl AsRef<str>) -> Self {
         ApiError::Msg(msg.as_ref().to_string())

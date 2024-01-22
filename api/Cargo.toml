@@ -17,7 +17,7 @@ migration = { workspace = true }
 util = { workspace = true }
 macros = { workspace = true }
 envy = { workspace = true }
-wechat-pay-rust-sdk = { workspace = true }
+wechat-pay-rust-sdk = { workspace = true}
 actix-web = { workspace = true }
 tokio = { workspace = true }
 actix-governor = { workspace = true }

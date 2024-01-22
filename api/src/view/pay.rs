@@ -1,14 +1,18 @@
 use actix_web::http::StatusCode;
 use actix_web::web::{scope, Bytes, Data, Json, Path, ServiceConfig};
-use actix_web::{post, HttpRequest, HttpResponse};
+use actix_web::{get, post, HttpRequest, HttpResponse};
+use cached::proc_macro::{cached, io_cached};
+use cached::IOCachedAsync;
+use cached::{AsyncRedisCache, Cached, TimedSizedCache};
 use serde::{Deserialize, Serialize};
-use service::error::ServiceError;
+use service::sea_orm::DbConn;
+use std::time::Duration;
 use tracing::{debug, error, instrument};
 use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayDecodeData, WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
-use crate::base::response::resp_ok_empty;
+use crate::base::response::{resp_ok, resp_ok_empty};
 use crate::base::state::AppState;
 
 #[post("/wechat/notify")]
@@ -96,10 +100,52 @@ async fn wechat_pay_order(
     //     .map(Ok)?
 }
 
+// #[cached(time = 1, key = "String", convert = r#"{|x| x }"#, result = true)]
+// async fn only_cached_a_second(key: String) -> Result<String, &'static ApiError> {
+//     Ok(key)
+// }
+#[cached(
+    result = true,
+    convert = r#"{ s.to_string() }"#,
+    create = r#"{ TimedSizedCache::with_size_and_lifespan(3, 3) }"#,
+    type = r#"TimedSizedCache<String, String>"#
+)]
+async fn only_cached_a_second(s: String, conn: &DbConn) -> Result<String, ApiError> {
+    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    Ok(s + &now)
+}
+
+#[get("/cache/{key}")]
+#[instrument(skip(state))]
+async fn cache_test(state: Data<AppState>, key: Path<String>) -> Result<HttpResponse, ApiError> {
+    let key = key.into_inner();
+    cached_for_string_key(key)
+        .await
+        .map(|x| resp_ok(x).into())
+        .map(Ok)?
+}
+
+#[cached(
+    result = true,
+    key = "String",
+    time = 3,
+    size = 3,
+    convert = r#"{ format!("{}",s) }"#
+)]
+async fn cached_for_string_key(s: String) -> Result<String, ApiError> {
+    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
+    Ok(s + &now)
+}
+#[cached(result = true, key = "i32", time = 3, size = 3, convert = r#"{ k }"#)]
+async fn cached_for_string_i32(k: i32) -> Result<String, ApiError> {
+    Ok(k.to_string())
+}
+
 pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
         scope("/pay")
             .service(wechat_notify)
-            .service(wechat_pay_order),
+            .service(wechat_pay_order)
+            .service(cache_test),
     );
 }
