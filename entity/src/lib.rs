@@ -6,5 +6,6 @@ pub mod pay_record;
 mod prepare;
 pub mod user;
 pub mod user_dump;
+pub mod pay_menu;
 
 pub use prepare::*;

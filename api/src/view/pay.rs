@@ -100,10 +100,6 @@ async fn wechat_pay_order(
     //     .map(Ok)?
 }
 
-// #[cached(time = 1, key = "String", convert = r#"{|x| x }"#, result = true)]
-// async fn only_cached_a_second(key: String) -> Result<String, &'static ApiError> {
-//     Ok(key)
-// }
 #[cached(
     result = true,
     convert = r#"{ s.to_string() }"#,
