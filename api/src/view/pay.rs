@@ -1,14 +1,12 @@
 use actix_web::http::StatusCode;
-use actix_web::web::{scope, Bytes, Data, Json, Path, ServiceConfig};
-use actix_web::{get, post, HttpRequest, HttpResponse};
-use cached::proc_macro::{cached, io_cached};
-use cached::IOCachedAsync;
-use cached::{AsyncRedisCache, Cached, TimedSizedCache};
+use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
+use actix_web::{get, post, HttpResponse};
+use cached::proc_macro::{cached};
+use cached::{TimedSizedCache};
 use serde::{Deserialize, Serialize};
 use service::sea_orm::DbConn;
-use std::time::Duration;
 use tracing::{debug, error, instrument};
-use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayDecodeData, WechatPayNotify};
+use wechat_pay_rust_sdk::model::{WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
@@ -106,7 +104,7 @@ async fn wechat_pay_order(
     create = r#"{ TimedSizedCache::with_size_and_lifespan(3, 3) }"#,
     type = r#"TimedSizedCache<String, String>"#
 )]
-async fn only_cached_a_second(s: String, conn: &DbConn) -> Result<String, ApiError> {
+async fn only_cached_a_second(s: String, _conn: &DbConn) -> Result<String, ApiError> {
     let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
     Ok(s + &now)
 }
