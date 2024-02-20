@@ -1,4 +1,3 @@
-use entity::app::AppCountry;
 use entity::{PayMenu, PayMenuActiveModel};
 use sea_orm_migration::prelude::*;
 

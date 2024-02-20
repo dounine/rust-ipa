@@ -9,10 +9,9 @@ use service::sea_orm::DbConn;
 use tracing::{debug, error, instrument};
 use wechat_pay_rust_sdk::model::WechatPayNotify;
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
-use migration::sea_orm::TryIntoModel;
 
 use crate::base::error::ApiError;
-use crate::base::response::{resp_ok, resp_ok_empty};
+use crate::base::response::{resp_ok};
 use crate::base::state::AppState;
 use crate::base::token::UserData;
 
