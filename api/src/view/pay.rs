@@ -9,6 +9,7 @@ use service::sea_orm::DbConn;
 use tracing::{debug, error, instrument};
 use wechat_pay_rust_sdk::model::WechatPayNotify;
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
+use migration::sea_orm::TryIntoModel;
 
 use crate::base::error::ApiError;
 use crate::base::response::{resp_ok, resp_ok_empty};
@@ -103,11 +104,12 @@ async fn wechat_pay_order(
     let pay_info = service::pay::create_pay(
         &state.conn,
         user.id,
-        service::pay::PayPlatform::Wechat,
+        entity::pay::PayPlatform::Wechat,
         pay_menu.money,
         pay_menu.coin,
     )
-    .await?;
+    .await?
+        .try_into_model()?;
     // let wechat_pay = WechatPay::from_env();
     // let _conn = &state.conn;
     // let pay_params = H5Params::new(
@@ -117,7 +119,7 @@ async fn wechat_pay_order(
     //     H5SceneInfo::new("8.210.234.214", "rust收钱", "https://crates.io"),
     // );
     // wechat_pay.h5_pay(pay_params).await.unwrap();
-    Ok(HttpResponse::Ok().json(resp_ok(serde_json::json!({
+    Ok(HttpResponse::Ok().json(resp_ok(json!({
         "order_id": pay_info.id,
         "money": pay_menu.money,
         "coin": pay_menu.coin,
