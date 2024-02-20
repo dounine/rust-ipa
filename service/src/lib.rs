@@ -8,4 +8,6 @@ pub mod pay_record;
 pub mod user;
 pub mod user_dump;
 
+pub mod pay_menu;
+
 pub use sea_orm;

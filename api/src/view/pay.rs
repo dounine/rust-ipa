@@ -1,12 +1,13 @@
 use actix_web::http::StatusCode;
 use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
-use cached::proc_macro::{cached};
-use cached::{TimedSizedCache};
+use cached::proc_macro::cached;
+use cached::TimedSizedCache;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use service::sea_orm::DbConn;
 use tracing::{debug, error, instrument};
-use wechat_pay_rust_sdk::model::{WechatPayNotify};
+use wechat_pay_rust_sdk::model::WechatPayNotify;
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
@@ -51,6 +52,23 @@ struct PayParams {
     money: u32,
     time: u64,
     sign: String,
+}
+
+#[get("menus")]
+#[instrument(skip(state))]
+async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
+    let (menus, _) = service::pay_menu::list_pay_menu(&state.conn, 0, 100).await?;
+    let menus = menus
+        .into_iter()
+        .map(|x| {
+            json!( {
+                "id": x.id,
+                "money": x.money,
+                "coin": x.coin,
+            })
+        })
+        .collect::<Vec<_>>();
+    Ok(HttpResponse::Ok().json(resp_ok(menus)))
 }
 
 #[post("/wechat/order")]
@@ -140,6 +158,7 @@ pub fn configure(cfg: &mut ServiceConfig) {
         scope("/pay")
             .service(wechat_notify)
             .service(wechat_pay_order)
-            .service(cache_test),
+            .service(cache_test)
+            .service(pay_menus),
     );
 }

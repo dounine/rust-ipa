@@ -32,3 +32,8 @@ pub use super::user_dump::ActiveModel as UserDumpActiveModel;
 pub use super::user_dump::Column as UserDumpColumn;
 pub use super::user_dump::Entity as UserDump;
 pub use super::user_dump::Model as UserDumpModel;
+
+pub use super::pay_menu::ActiveModel as PayMenuActiveModel;
+pub use super::pay_menu::Column as PayMenuColumn;
+pub use super::pay_menu::Entity as PayMenu;
+pub use super::pay_menu::Model as PayMenuModel;

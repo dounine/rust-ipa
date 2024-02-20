@@ -4,7 +4,7 @@ use sea_orm::entity::prelude::*;
 #[sea_orm(table_name = "pay_menu")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: String,
+    pub id: i32,
     pub money: i32,
     pub coin: i32,
     pub created_at: DateTime,
