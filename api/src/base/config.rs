@@ -1,14 +1,17 @@
+use crate::base::error::ApiError;
 use serde::Deserialize;
-use std::io::Error;
 
 #[derive(Deserialize, Debug)]
 pub struct Config {
     pub database_url: String,
+
+    pub wechat_app_name: String,
+    pub wechat_referrer: String,
 }
 
 impl Config {
-    pub fn from_env() -> Result<Self, Error> {
+    pub fn from_env() -> Result<Self, ApiError> {
         dotenvy::dotenv().ok();
-        envy::from_env::<Config>().map_err(|e| Error::new(std::io::ErrorKind::Other, e))
+        envy::from_env::<Config>().map_err(|e| ApiError::msg(e.to_string()))
     }
 }

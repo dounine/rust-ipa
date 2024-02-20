@@ -4,6 +4,7 @@ use crate::base::response::resp_fail;
 
 #[derive(thiserror::Error, Debug)]
 pub enum ApiError {
+
     #[error("{0}")]
     Msg(String),
     #[error("db_error: {0}")]

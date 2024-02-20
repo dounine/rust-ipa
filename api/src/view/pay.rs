@@ -1,3 +1,4 @@
+use crate::base::config::Config;
 use actix_web::http::StatusCode;
 use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse};
@@ -7,11 +8,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use service::sea_orm::DbConn;
 use tracing::{debug, error, instrument};
-use wechat_pay_rust_sdk::model::WechatPayNotify;
+use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
-use crate::base::response::{resp_ok};
+use crate::base::response::resp_ok;
 use crate::base::state::AppState;
 use crate::base::token::UserData;
 
@@ -78,9 +79,14 @@ async fn wechat_pay_order(
     state: Data<AppState>,
     data: Json<PayParams>,
     user: UserData,
+    req: actix_web::HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
+    let ip = req
+        .connection_info()
+        .realip_remote_addr()
+        .unwrap_or("183.6.105.140")
+        .to_string();
     let data = data.into_inner();
-
     let mut maps = vec![("id", data.id.to_string()), ("time", data.time.to_string())];
     maps.sort_by(|a, b| a.0.cmp(&b.0));
     let sign_str = maps
@@ -108,26 +114,38 @@ async fn wechat_pay_order(
         pay_menu.coin,
     )
     .await?;
-    // let wechat_pay = WechatPay::from_env();
-    // let _conn = &state.conn;
-    // let pay_params = H5Params::new(
-    //     "测试支付1分",
-    //     "1243243",
-    //     1.into(),
-    //     H5SceneInfo::new("8.210.234.214", "rust收钱", "https://crates.io"),
-    // );
-    // wechat_pay.h5_pay(pay_params).await.unwrap();
+    let wechat_pay = WechatPay::from_env();
+    let config = Config::from_env()?;
+    let _conn = &state.conn;
+    let money: f32 = (pay_menu.money / 100) as f32;
+    let description = format!("UID:{} - 充值:{:.2}", user.id, money);
+    let pay_params = H5Params::new(
+        description,
+        pay_info.id.clone(),
+        pay_menu.money.into(),
+        H5SceneInfo::new(
+            ip.as_str(),
+            config.wechat_app_name.as_str(),
+            config.wechat_referrer.as_str(),
+        ),
+    );
+    let result = wechat_pay
+        .h5_pay(pay_params)
+        .await
+        .map_err(|e| ApiError::msg(e.to_string()))?;
+    let h5_url = result.h5_url.ok_or(ApiError::msg("支付失败".to_string()))?;
+    let weixin_url = wechat_pay
+        .get_weixin(h5_url, "https://crates.io".to_string())
+        .await
+        .map_err(|e| ApiError::msg(e.to_string()))?
+        .ok_or(ApiError::msg("微信支付地址获取失败".to_string()))?;
     Ok(HttpResponse::Ok().json(resp_ok(json!({
         "order_id": pay_info.id,
         "money": pay_menu.money,
         "coin": pay_menu.coin,
         "crated_at": pay_info.created_at,
+        "pay_url": weixin_url,
     }))))
-    //     .await
-    //     .map(|user| resp_ok(user))
-    //     .map(|user| HttpResponse::Ok().json(user))
-    //     .map_err(|e| MyError::Msg(e.to_string()))
-    //     .map(Ok)?
 }
 
 #[cached(
