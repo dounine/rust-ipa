@@ -13,6 +13,7 @@ use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 use crate::base::error::ApiError;
 use crate::base::response::{resp_ok, resp_ok_empty};
 use crate::base::state::AppState;
+use crate::base::token::UserData;
 
 #[post("/wechat/notify")]
 #[instrument(skip(state))]
@@ -49,7 +50,7 @@ async fn wechat_notify(
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PayParams {
-    money: u32,
+    id: i32,
     time: u64,
     sign: String,
 }
@@ -76,13 +77,11 @@ async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
 async fn wechat_pay_order(
     state: Data<AppState>,
     data: Json<PayParams>,
+    user: UserData,
 ) -> Result<HttpResponse, ApiError> {
     let data = data.into_inner();
 
-    let mut maps = vec![
-        ("money", data.money.to_string()),
-        ("time", data.time.to_string()),
-    ];
+    let mut maps = vec![("id", data.id.to_string()), ("time", data.time.to_string())];
     maps.sort_by(|a, b| a.0.cmp(&b.0));
     let sign_str = maps
         .into_iter()
@@ -98,6 +97,17 @@ async fn wechat_pay_order(
     if time - data.time as i64 > 5 * 60 {
         return Err(ApiError::msg("定单失效，请重新创建".to_string()));
     }
+    let pay_menu = service::pay_menu::find_pay_menu(&state.conn, data.id)
+        .await?
+        .ok_or(ApiError::msg("金额不存在".to_string()))?;
+    let pay_info = service::pay::create_pay(
+        &state.conn,
+        user.id,
+        service::pay::PayPlatform::Wechat,
+        pay_menu.money,
+        pay_menu.coin,
+    )
+    .await?;
     // let wechat_pay = WechatPay::from_env();
     // let _conn = &state.conn;
     // let pay_params = H5Params::new(
@@ -107,8 +117,12 @@ async fn wechat_pay_order(
     //     H5SceneInfo::new("8.210.234.214", "rust收钱", "https://crates.io"),
     // );
     // wechat_pay.h5_pay(pay_params).await.unwrap();
-
-    Ok(HttpResponse::Ok().json(resp_ok_empty()))
+    Ok(HttpResponse::Ok().json(resp_ok(serde_json::json!({
+        "order_id": pay_info.id,
+        "money": pay_menu.money,
+        "coin": pay_menu.coin,
+        "crated_at": pay_info.created_at,
+    }))))
     //     .await
     //     .map(|user| resp_ok(user))
     //     .map(|user| HttpResponse::Ok().json(user))

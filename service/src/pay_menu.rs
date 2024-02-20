@@ -35,6 +35,14 @@ pub async fn list_pay_menu(
         .map(|list| (list, num_pages))
 }
 
+#[instrument(skip(conn))]
+pub async fn find_pay_menu(conn: &DbConn, id: i32) -> Result<Option<PayMenuModel>, DbErr> {
+    PayMenu::find()
+        .filter(PayMenuColumn::Id.eq(id))
+        .one(conn)
+        .await
+}
+
 #[cfg(test)]
 mod tests {
     use std::env;
