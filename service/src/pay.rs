@@ -1,10 +1,11 @@
 use crate::error::ServiceError;
 use ::entity::pay::PayPlatform;
+use ::entity::PayModel;
 use ::entity::{Pay, PayActiveModel, PayColumn};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait};
-use sea_orm::QueryFilter;
 use sea_orm::{DbConn, EntityTrait, TransactionTrait};
+use sea_orm::{DbErr, QueryFilter};
 use tracing::instrument;
 
 /// 创建订单
@@ -15,8 +16,8 @@ pub async fn create_pay(
     platform: PayPlatform,
     money: i32,
     coin: i32,
-) -> Result<PayActiveModel, ServiceError> {
-    let pay = PayActiveModel {
+) -> Result<PayModel, DbErr> {
+    let model = PayActiveModel {
         id: Set(util::uuid::uuid32()),
         user_id: Set(user_id),
         money: Set(money),
@@ -25,15 +26,12 @@ pub async fn create_pay(
         payed: Set(false),
         ..Default::default()
     };
-    Ok(pay.save(conn).await?)
+    model.insert(conn).await
 }
 
 /// 修改订单状态
 #[instrument(skip(conn))]
-pub async fn change_payed_status(
-    conn: &DbConn,
-    pay_id: String,
-) -> Result<(), ServiceError> {
+pub async fn change_payed_status(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
     let tx = conn.begin().await?;
     let pay_info = Pay::find()
         .filter(PayColumn::Id.eq(pay_id))
@@ -77,9 +75,7 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = super::create_pay(&conn, 1, super::PayPlatform::Wechat, 1, 1)
-            .await
-            .unwrap();
+        let pay_info = super::create_pay(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
         debug!("pay_id: {:?}", pay_info);
         let pay_id = pay_info.id.unwrap();
         super::change_payed_status(&conn, pay_id).await

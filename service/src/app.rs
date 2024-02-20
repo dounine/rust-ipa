@@ -9,7 +9,7 @@ use tracing::instrument;
 
 #[instrument(skip(conn))]
 pub async fn create(conn: &DbConn, form_data: AppModel) -> Result<(), DbErr> {
-    AppActiveModel {
+    let model = AppActiveModel {
         app_id: Set("1".to_owned()),
         country: Set(AppCountry::Cn),
         name: Set("微信".to_owned()),
@@ -22,10 +22,8 @@ pub async fn create(conn: &DbConn, form_data: AppModel) -> Result<(), DbErr> {
         genres: Set("社交".to_owned()),
         single: Set(false),
         ..Default::default()
-    }
-        .save(conn)
-        .await
-        .map(|_| ())
+    };
+    model.insert(conn).await.map(|_| ())
 }
 
 #[instrument(skip(conn))]

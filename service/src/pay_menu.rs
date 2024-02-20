@@ -9,14 +9,13 @@ use tracing::instrument;
 pub async fn create_pay_menu(
     conn: &DbConn,
     form_data: PayMenuModel,
-) -> Result<PayMenuActiveModel, DbErr> {
-    PayMenuActiveModel {
+) -> Result<PayMenuModel, DbErr> {
+    let mode = PayMenuActiveModel {
         money: Set(form_data.money),
         coin: Set(form_data.coin),
         ..Default::default()
-    }
-    .save(conn)
-    .await
+    };
+    mode.insert(conn).await
 }
 
 #[instrument(skip(conn))]

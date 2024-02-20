@@ -108,8 +108,7 @@ async fn wechat_pay_order(
         pay_menu.money,
         pay_menu.coin,
     )
-    .await?
-        .try_into_model()?;
+    .await?;
     // let wechat_pay = WechatPay::from_env();
     // let _conn = &state.conn;
     // let pay_params = H5Params::new(
