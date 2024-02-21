@@ -12,7 +12,7 @@ use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
-use crate::base::response::{resp_ok};
+use crate::base::response::resp_ok;
 use crate::base::state::AppState;
 use crate::base::token::UserData;
 
@@ -74,13 +74,14 @@ async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
 }
 
 #[post("/wechat/order")]
-#[instrument(skip(state))]
+#[instrument(skip(state,req))]
 async fn wechat_pay_order(
     state: Data<AppState>,
     data: Json<PayParams>,
     user: UserData,
     req: actix_web::HttpRequest,
 ) -> Result<HttpResponse, ApiError> {
+    debug!("wechat_pay_order: {:?}", data);
     let ip = req
         .connection_info()
         .realip_remote_addr()
@@ -135,7 +136,7 @@ async fn wechat_pay_order(
         .map_err(|e| ApiError::msg(e.to_string()))?;
     let h5_url = result.h5_url.ok_or(ApiError::msg("支付失败".to_string()))?;
     let weixin_url = wechat_pay
-        .get_weixin(h5_url, "https://crates.io".to_string())
+        .get_weixin(h5_url, config.wechat_referrer)
         .await
         .map_err(|e| ApiError::msg(e.to_string()))?
         .ok_or(ApiError::msg("微信支付地址获取失败"))?;
@@ -145,7 +146,8 @@ async fn wechat_pay_order(
         "coin": pay_menu.coin,
         "crated_at": pay_info.created_at,
         "pay_url": weixin_url,
-    })).into())
+    }))
+    .into())
 }
 
 #[cached(
