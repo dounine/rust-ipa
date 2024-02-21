@@ -12,6 +12,7 @@ use entity::pay_record::PayRecordType;
 use entity::DumpModel;
 use migration::sea_orm::TransactionTrait;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use tokio::try_join;
 use tracing::instrument;
 
@@ -148,7 +149,7 @@ async fn versions(
         service::app::search_by_appid(&state.conn, country, app_id.as_str()),
         service::app_version::search_by_appid(&state.conn, country, app_id.as_str()),
     )?;
-    Ok(resp_ok(serde_json::json!({
+    Ok(resp_ok(json!({
         "app_info": app_info,
         "versions": app_versions
     }))
@@ -169,7 +170,7 @@ async fn latest_version(
         service::dump::search_by_appid(&state.conn, country, app_id.as_str()),
         service::user_dump::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
     )?;
-    Ok(resp_ok(serde_json::json!({
+    Ok(resp_ok(json!({
         "app_info": app_info,
         "latest_version": latest_version,
         "dump_status": app_version_dump.map(|x|x.status),

@@ -45,8 +45,7 @@ async fn records(
     let PageOptions { offset, limit } = page.format();
     service::pay_record::user_records(&state.conn, user_data.id, offset, limit)
         .await
-        .map(|(l, total)| resp_list(l, total))
-        .map(|l| HttpResponse::Ok().json(l))
+        .map(|(l, total)| resp_list(l, total).into())
         .map(Ok)?
 }
 

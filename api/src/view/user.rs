@@ -21,8 +21,7 @@ async fn user_list(
     let page = page.format();
     service::user::list_user(&state.conn, page.offset, page.limit)
         .await
-        .map(|(l, total)| resp_list(l, total))
-        .map(|users| HttpResponse::Ok().json(users))
+        .map(|(l, total)| resp_list(l, total).into())
         .map(Ok)?
 }
 
@@ -35,8 +34,7 @@ async fn user_detail(
 ) -> Result<HttpResponse, ApiError> {
     service::user::find_user_by_id(&state.conn, id.into_inner())
         .await
-        .map(|user| resp_ok(user))
-        .map(|user| HttpResponse::Ok().json(user))
+        .map(|user| resp_ok(user).into())
         .map(Ok)?
 }
 

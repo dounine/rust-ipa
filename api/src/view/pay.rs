@@ -12,7 +12,7 @@ use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 
 use crate::base::error::ApiError;
-use crate::base::response::resp_ok;
+use crate::base::response::{resp_ok};
 use crate::base::state::AppState;
 use crate::base::token::UserData;
 
@@ -70,7 +70,7 @@ async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
             })
         })
         .collect::<Vec<_>>();
-    Ok(HttpResponse::Ok().json(resp_ok(menus)))
+    Ok(resp_ok(menus).into())
 }
 
 #[post("/wechat/order")]
@@ -96,16 +96,16 @@ async fn wechat_pay_order(
         .join("\n");
     let sign = util::crypto::md5(sign_str);
     if sign != data.sign {
-        return Err(ApiError::msg("签名验证失败".to_string()));
+        return ApiError::msg("签名验证失败").into();
     }
     let time = chrono::Local::now().timestamp();
     // 5分钟有效期
     if time - data.time as i64 > 5 * 60 {
-        return Err(ApiError::msg("定单失效，请重新创建".to_string()));
+        return ApiError::msg("定单失效，请重新创建").into();
     }
     let pay_menu = service::pay_menu::find_pay_menu(&state.conn, data.id)
         .await?
-        .ok_or(ApiError::msg("金额不存在".to_string()))?;
+        .ok_or(ApiError::msg("金额不存在"))?;
     let pay_info = service::pay::create_pay(
         &state.conn,
         user.id,
@@ -138,14 +138,14 @@ async fn wechat_pay_order(
         .get_weixin(h5_url, "https://crates.io".to_string())
         .await
         .map_err(|e| ApiError::msg(e.to_string()))?
-        .ok_or(ApiError::msg("微信支付地址获取失败".to_string()))?;
-    Ok(HttpResponse::Ok().json(resp_ok(json!({
+        .ok_or(ApiError::msg("微信支付地址获取失败"))?;
+    Ok(resp_ok(json!({
         "order_id": pay_info.id,
         "money": pay_menu.money,
         "coin": pay_menu.coin,
         "crated_at": pay_info.created_at,
         "pay_url": weixin_url,
-    }))))
+    })).into())
 }
 
 #[cached(
