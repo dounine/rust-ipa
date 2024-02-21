@@ -4,7 +4,7 @@ use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse, Responder};
 use cached::proc_macro::cached;
 use cached::TimedSizedCache;
-use image::{DynamicImage, GenericImageView, Luma, Pixel};
+use image::{DynamicImage, GenericImageView, Luma};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
