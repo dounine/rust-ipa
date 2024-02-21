@@ -1,12 +1,15 @@
 use crate::base::config::Config;
 use actix_web::http::StatusCode;
 use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
-use actix_web::{get, post, HttpResponse};
+use actix_web::{get, post, HttpResponse, Responder};
 use cached::proc_macro::cached;
 use cached::TimedSizedCache;
+use image::{DynamicImage, Luma};
+use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use service::sea_orm::DbConn;
+use std::io::Cursor;
 use tracing::{debug, error, instrument};
 use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayNotify};
 use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
@@ -73,8 +76,26 @@ async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
     Ok(resp_ok(menus).into())
 }
 
+#[get("/png")]
+#[instrument(skip(_state))]
+async fn png(_state: Data<AppState>) -> impl Responder {
+    let code = QrCode::new(b"https://baidu.com").unwrap();
+    let image = code.render::<Luma<u8>>()
+        .min_dimensions(300, 300)
+        .dark_color(Luma([0u8]))
+        .light_color(Luma([255u8]))
+        .build();
+    let mut buf = Cursor::new(Vec::new());
+    DynamicImage::ImageLuma8(image)
+        .write_to(&mut buf, image::ImageOutputFormat::Png)
+        .unwrap();
+    HttpResponse::Ok()
+        .content_type("image/png")
+        .body(buf.into_inner())
+}
+
 #[post("/wechat/order")]
-#[instrument(skip(state,req))]
+#[instrument(skip(state, req))]
 async fn wechat_pay_order(
     state: Data<AppState>,
     data: Json<PayParams>,
@@ -193,6 +214,7 @@ pub fn configure(cfg: &mut ServiceConfig) {
             .service(wechat_notify)
             .service(wechat_pay_order)
             .service(cache_test)
+            .service(png)
             .service(pay_menus),
     );
 }

@@ -38,6 +38,8 @@ migration = { path = "migration" }
 service = { path = "service" }
 util = { path = "util" }
 macros = { path = "macros" }
+qrcode = { version = "0.13.0" }
+image = { version = "0.24.8" }
 envy = { version = "0.4.2" }
 wechat-pay-rust-sdk = { version = "0.2.11" }
 actix-web = { version = "4.4.1" }
