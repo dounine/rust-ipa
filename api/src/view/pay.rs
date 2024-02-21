@@ -4,7 +4,7 @@ use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse, Responder};
 use cached::proc_macro::cached;
 use cached::TimedSizedCache;
-use image::{DynamicImage, Luma};
+use image::{DynamicImage, GenericImageView, Luma, Pixel};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -80,13 +80,43 @@ async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
 #[instrument(skip(_state))]
 async fn png(_state: Data<AppState>) -> impl Responder {
     let code = QrCode::new(b"https://baidu.com").unwrap();
-    let image = code.render::<Luma<u8>>()
+    let image = code
+        .render::<Luma<u8>>()
         .min_dimensions(300, 300)
         .dark_color(Luma([0u8]))
         .light_color(Luma([255u8]))
         .build();
     let mut buf = Cursor::new(Vec::new());
     DynamicImage::ImageLuma8(image)
+        .write_to(&mut buf, image::ImageOutputFormat::Png)
+        .unwrap();
+    HttpResponse::Ok()
+    .content_type("image/png")
+    .body(buf.into_inner())
+}
+
+#[get("/watermark")]
+#[instrument(skip(_state))]
+async fn watermark(_state: Data<AppState>) -> impl Responder {
+    let code = QrCode::new(b"https://baidu.com").unwrap();
+    let image = code
+        .render::<Luma<u8>>()
+        .min_dimensions(300, 300)
+        .dark_color(Luma([0u8]))
+        .light_color(Luma([255u8]))
+        .build();
+    let mut image = DynamicImage::ImageLuma8(image);
+    let image_watermark = image::open("img.png").unwrap();
+    let (width, height) = image.dimensions();
+    let (wm_width, wm_height) = image_watermark.dimensions();
+
+    let x = (width - wm_width) / 2;
+    let y = (height - wm_height) / 2;
+
+    image::imageops::overlay(&mut image, &image_watermark, x as i64, y as i64);
+
+    let mut buf = Cursor::new(Vec::new());
+    image
         .write_to(&mut buf, image::ImageOutputFormat::Png)
         .unwrap();
     HttpResponse::Ok()
@@ -215,6 +245,7 @@ pub fn configure(cfg: &mut ServiceConfig) {
             .service(wechat_pay_order)
             .service(cache_test)
             .service(png)
+            .service(watermark)
             .service(pay_menus),
     );
 }
