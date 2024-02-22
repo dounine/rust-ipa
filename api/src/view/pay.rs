@@ -4,7 +4,7 @@ use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse, Responder};
 use cached::proc_macro::cached;
 use cached::TimedSizedCache;
-use image::{DynamicImage, GenericImageView, Luma};
+use image::{DynamicImage, GenericImageView, ImageFormat, Luma, Pixel, Rgba};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -91,29 +91,63 @@ async fn png(_state: Data<AppState>) -> impl Responder {
         .write_to(&mut buf, image::ImageOutputFormat::Png)
         .unwrap();
     HttpResponse::Ok()
-    .content_type("image/png")
-    .body(buf.into_inner())
+        .content_type("image/png")
+        .body(buf.into_inner())
 }
 
 #[get("/watermark")]
 #[instrument(skip(_state))]
 async fn watermark(_state: Data<AppState>) -> impl Responder {
     let code = QrCode::new(b"https://baidu.com").unwrap();
-    let image = code
-        .render::<Luma<u8>>()
-        .min_dimensions(300, 300)
-        .dark_color(Luma([0u8]))
-        .light_color(Luma([255u8]))
-        .build();
-    let mut image = DynamicImage::ImageLuma8(image);
-    let image_watermark = image::open("img.png").unwrap();
+    let image = code.render::<Rgba<u8>>().min_dimensions(300, 300).build();
+
+    let mut image = DynamicImage::ImageRgba8(image);
+    let watermark = image::open("wechat.jpg").unwrap();
+    let watermark = watermark.resize(50, 50, image::imageops::FilterType::Triangle);
     let (width, height) = image.dimensions();
-    let (wm_width, wm_height) = image_watermark.dimensions();
+    let (wm_width, wm_height) = watermark.dimensions();
 
-    let x = (width - wm_width) / 2;
-    let y = (height - wm_height) / 2;
+    // 创建一个带有 RGB 颜色通道的水印图片
+    let rgb_watermark = watermark.to_rgba8();
 
-    image::imageops::overlay(&mut image, &image_watermark, x as i64, y as i64);
+    let margin = 3;
+    let mut bg_watermarked =
+        DynamicImage::new_rgba8(wm_width + margin * 2, wm_height + margin * 2).to_rgba8();
+    let mut watermarked = DynamicImage::new_rgba8(wm_width, wm_height).to_rgba8();
+
+    //水印底部的白色边距背景
+    for x in 0..bg_watermarked.width() {
+        for y in 0..bg_watermarked.height() {
+            bg_watermarked.put_pixel(x, y, Rgba([255, 255, 255, 255]));
+        }
+    }
+
+    //水印底部的白色背景
+    for x in 0..wm_width {
+        for y in 0..wm_height {
+            watermarked.put_pixel(x, y, Rgba([255, 255, 255, 255]));
+        }
+    }
+
+    // 将彩色的水印叠加在水印背景图片上
+    for x in 0..wm_width {
+        for y in 0..wm_height {
+            let pixel = rgb_watermark.get_pixel(x, y);
+            if pixel[3] > 0 {
+                watermarked.put_pixel(x, y, pixel.to_rgba());
+            }
+        }
+    }
+
+    let x: i64 = ((width - bg_watermarked.width()) / 2).into();
+    let y: i64 = ((height - bg_watermarked.height()) / 2).into();
+
+    image::imageops::overlay(&mut image, &bg_watermarked, x, y);
+
+    let x2: i64 = ((width - wm_width) / 2).into();
+    let y2: i64 = ((height - wm_height) / 2).into();
+
+    image::imageops::overlay(&mut image, &watermarked, x2, y2);
 
     let mut buf = Cursor::new(Vec::new());
     image
