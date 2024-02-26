@@ -27,7 +27,7 @@ pub async fn latest_version(
             app_id.as_str()
         ),
         service::dump::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
-        service::user_dump::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
+        service::user_dump::search_by_user::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
     )?;
     Ok(resp_ok(json!({
         "app_info": app_info,

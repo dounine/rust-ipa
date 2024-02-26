@@ -37,7 +37,7 @@ pub async fn dump_app(
     data: Json<DumpParam>,
 ) -> Result<HttpResponse, ApiError> {
     let data = data.into_inner();
-    let user_dump_info = service::user_dump::search_by_user(
+    let user_dump_info = service::user_dump::search_by_user::search_by_user(
         &state.conn,
         data.country.clone(),
         data.app_id.as_str(),
@@ -48,7 +48,8 @@ pub async fn dump_app(
         return ApiError::msg("您已经提交提取请求，请勿重复提取").into();
     }
     let user_dump_today =
-        service::user_dump::search_by_user_today(&state.conn, user_data.id).await?;
+        service::user_dump::search_by_user_today::search_by_user_today(&state.conn, user_data.id)
+            .await?;
     if user_dump_today.len() >= 10 {
         return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
     }
@@ -88,7 +89,7 @@ pub async fn dump_app(
     let tx = state.conn.begin().await?;
     service::pay_record::coin_change::coin_change(&tx, user_data.id, 1, PayRecordType::Extract)
         .await?;
-    service::user_dump::create(
+    service::user_dump::create::create(
         &tx,
         data.country.clone(),
         data.app_id.as_str(),
