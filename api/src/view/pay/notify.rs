@@ -31,7 +31,7 @@ async fn wechat_notify(
         )
         .map_err(|e| ApiError::msg(e.to_string()))?;
     debug!("pay notify decrypt result: {:?}", result);
-    match service::pay::change_payed_status(&state.conn, result.out_trade_no).await {
+    match service::pay::payed::payed(&state.conn, result.out_trade_no).await {
         Ok(_) => Ok(HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish()),
         Err(e) => {
             error!("change_payed_status error: {:?}", e);

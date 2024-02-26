@@ -139,7 +139,7 @@ async fn wechat_pay_order(
     let pay_menu = service::pay_menu::find_pay_menu(&state.conn, data.id)
         .await?
         .ok_or(ApiError::msg("金额不存在"))?;
-    let pay_info = service::pay::create_pay(
+    let pay_info = service::pay::create::create(
         &state.conn,
         user.id,
         entity::pay::PayPlatform::Wechat,

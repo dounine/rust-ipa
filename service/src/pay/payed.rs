@@ -1,37 +1,16 @@
-use crate::error::ServiceError;
-use ::entity::pay::PayPlatform;
-use ::entity::PayModel;
-use ::entity::{Pay, PayActiveModel, PayColumn};
-use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait};
+use sea_orm::{ColumnTrait};
 use sea_orm::{DbConn, EntityTrait, TransactionTrait};
-use sea_orm::{DbErr, QueryFilter};
+use sea_orm::ActiveValue::Set;
+use sea_orm::QueryFilter;
 use tracing::instrument;
 
-/// 创建订单
-#[instrument(skip(conn))]
-pub async fn create_pay(
-    conn: &DbConn,
-    user_id: i32,
-    platform: PayPlatform,
-    money: i32,
-    coin: i32,
-) -> Result<PayModel, DbErr> {
-    let model = PayActiveModel {
-        id: Set(util::uuid::uuid32()),
-        user_id: Set(user_id),
-        money: Set(money),
-        coin: Set(coin),
-        platform: Set(platform),
-        payed: Set(false),
-        ..Default::default()
-    };
-    model.insert(conn).await
-}
+use ::entity::{Pay, PayActiveModel, PayColumn};
+use entity::pay_record::PayRecordType;
 
-/// 修改订单状态
+use crate::error::ServiceError;
+
 #[instrument(skip(conn))]
-pub async fn change_payed_status(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
+pub async fn payed(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
     let tx = conn.begin().await?;
     let pay_info = Pay::find()
         .filter(PayColumn::Id.eq(pay_id))
@@ -46,11 +25,11 @@ pub async fn change_payed_status(conn: &DbConn, pay_id: String) -> Result<(), Se
             acive_model.payed = Set(true);
             acive_model.payed_time = Set(Some(util::time::now()));
             Pay::update(acive_model).exec(&tx).await?;
-            super::pay_record::user_coin_change(
+            crate::pay_record::user_coin_change(
                 &tx,
                 info.user_id,
                 info.coin,
-                entity::pay_record::PayRecordType::Charge,
+                PayRecordType::Charge,
             )
             .await?;
             tx.commit().await?;
@@ -59,12 +38,14 @@ pub async fn change_payed_status(conn: &DbConn, pay_id: String) -> Result<(), Se
     };
     Ok(())
 }
-
 #[cfg(test)]
 mod tests {
-    use crate::error::ServiceError;
     use sea_orm::Database;
     use tracing::debug;
+
+    use crate::error::ServiceError;
+    use crate::pay::create::create;
+    use crate::pay::payed::payed;
 
     /// 测试创建订单
     #[tokio::test]
@@ -75,10 +56,10 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = super::create_pay(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
+        let pay_info = create(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
         debug!("pay_id: {:?}", pay_info);
         let pay_id = pay_info.id.unwrap();
-        super::change_payed_status(&conn, pay_id).await
+        payed(&conn, pay_id).await
     }
 
     /// 测试订单不存在
@@ -91,7 +72,7 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        super::change_payed_status(&conn, "-1".to_string())
+        payed(&conn, "-1".to_string())
             .await
             .unwrap();
     }
@@ -106,14 +87,15 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = super::create_pay(&conn, 1, super::PayPlatform::Wechat, 1, 1)
+        let pay_info = create(&conn, 1, super::PayPlatform::Wechat, 1, 1)
             .await
             .unwrap();
         debug!("pay_info: {:?}", pay_info);
         let pay_id = pay_info.id.unwrap();
-        super::change_payed_status(&conn, pay_id.clone())
+        payed(&conn, pay_id.clone())
             .await
             .unwrap();
-        super::change_payed_status(&conn, pay_id).await.unwrap();
+        payed(&conn, pay_id).await.unwrap();
     }
 }
+
