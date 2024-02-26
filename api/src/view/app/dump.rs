@@ -60,7 +60,7 @@ pub async fn dump_app(
     )
     .await?;
     if app_version.is_none() {
-        if let Some(latest_dump_info) = service::dump::search_info(
+        if let Some(latest_dump_info) = service::dump::search_info::search_info(
             &state.conn,
             data.country.clone(),
             data.app_id.as_str(),
@@ -94,7 +94,7 @@ pub async fn dump_app(
         user_data.id,
     )
     .await?;
-    service::dump::create(
+    service::dump::create::create(
         &tx,
         DumpModel {
             country: data.country.clone(),
