@@ -25,9 +25,9 @@ async fn user_login(
 ) -> Result<HttpResponse, ApiError> {
     debug!("login data: {} {}", data.username, data.password);
     let user_query = if data.username.contains("@") {
-        service::user::find_user_by_email(&state.conn, data.username.as_str()).await
+        service::user::find_by_email::find_by_email(&state.conn, data.username.as_str()).await
     } else {
-        service::user::find_user_by_username(&state.conn, data.username.as_str()).await
+        service::user::find_by_username::find_by_username(&state.conn, data.username.as_str()).await
     };
     user_query.map(|user| match user {
         Some(result) => {

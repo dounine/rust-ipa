@@ -14,7 +14,7 @@ async fn user_detail(
     user: UserData,
     id: Path<i32>,
 ) -> Result<HttpResponse, ApiError> {
-    service::user::find_user_by_id(&state.conn, id.into_inner())
+    service::user::find_by_id::find_by_id(&state.conn, id.into_inner())
         .await
         .map(|user| resp_ok(user).into())
         .map(Ok)?

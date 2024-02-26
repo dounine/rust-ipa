@@ -45,7 +45,7 @@ pub async fn validate_token(token: &str, conn: &DbConn) -> Result<Option<UserDat
     .map(|data| data.claims)
     .map(|claims| async move {
         match claims.user_type {
-            UserType::Admin | UserType::User => service::user::find_user_by_id(&conn, claims.id)
+            UserType::Admin | UserType::User => service::user::find_by_id::find_by_id(&conn, claims.id)
                 .await
                 .map(|user| {
                     user.map(|user| UserData {

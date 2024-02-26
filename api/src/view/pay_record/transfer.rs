@@ -18,7 +18,7 @@ async fn transfer(
     if user_data.id == to_user_id {
         return Err(ApiError::msg("不能给自己转帐".to_string()));
     }
-    service::user::find_user_by_id(&state.conn, to_user_id)
+    service::user::find_by_id::find_by_id(&state.conn, to_user_id)
         .await?
         .ok_or_else(|| ApiError::msg("转帐目标用户不存在".to_string()))?;
     service::pay_record::transfer::transfer(&state.conn, user_data.id, to_user_id, coin).await?;

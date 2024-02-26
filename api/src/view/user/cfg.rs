@@ -17,7 +17,7 @@ async fn user_list(
 ) -> Result<HttpResponse, ApiError> {
     debug!("进去store查询数据中...");
     let page = page.format();
-    service::user::list_user(&state.conn, page.offset, page.limit)
+    service::user::list::list(&state.conn, page.offset, page.limit)
         .await
         .map(|(l, total)| resp_list(l, total).into())
         .map(Ok)?
@@ -30,7 +30,7 @@ async fn user_detail(
     user: UserData,
     id: Path<i32>,
 ) -> Result<HttpResponse, ApiError> {
-    service::user::find_user_by_id(&state.conn, id.into_inner())
+    service::user::find_by_id::find_by_id(&state.conn, id.into_inner())
         .await
         .map(|user| resp_ok(user).into())
         .map(Ok)?
