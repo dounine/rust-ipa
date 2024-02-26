@@ -33,7 +33,7 @@ async fn dump_change_status(
         version,
         status,
     } = query.into_inner();
-    service::admin::dump::change_status(&state.conn, country, app_id, version, status).await?;
+    service::admin::dump::change_status::change_status(&state.conn, country, app_id, version, status).await?;
     Ok(resp_ok_empty().into())
 }
 
@@ -45,7 +45,6 @@ mod tests {
 
     use entity::app::AppCountry;
 
-    use crate::admin::app::DumpFinishParam;
     use crate::base::state::AppState;
 
     #[tokio::test]
