@@ -1,14 +1,15 @@
-use actix_web::web::{scope, Data, Json, ServiceConfig};
-use actix_web::{patch, HttpResponse};
+use actix_web::{HttpResponse, patch};
+use actix_web::web::{Data, Json};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
+
+use entity::app::AppCountry;
+use entity::dump::DumpStatus;
 
 use crate::base::error::ApiError;
 use crate::base::response::resp_ok_empty;
 use crate::base::state::AppState;
 use crate::base::token::AdminUserData;
-use entity::app::AppCountry;
-use entity::dump::DumpStatus;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct DumpFinishParam {
@@ -18,7 +19,7 @@ struct DumpFinishParam {
     status: DumpStatus,
 }
 
-/// 修改应用dump状态为完成
+// 修改应用dump状态为完成
 #[patch("/change_status")]
 #[instrument(skip(state))]
 async fn dump_change_status(
@@ -36,14 +37,10 @@ async fn dump_change_status(
     Ok(resp_ok_empty().into())
 }
 
-pub fn configure(cfg: &mut ServiceConfig) {
-    cfg.service(scope("/admin/app").service(dump_change_status));
-}
-
 #[cfg(test)]
 mod tests {
-    use actix_web::web::{scope, Data};
-    use actix_web::{test, App};
+    use actix_web::{App, test};
+    use actix_web::web::{Data, scope};
     use tracing::debug;
 
     use entity::app::AppCountry;
@@ -62,7 +59,7 @@ mod tests {
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::patch()
             .uri("/admin/app/change_status")
-            .set_json(DumpFinishParam {
+            .set_json(super::DumpFinishParam {
                 country: AppCountry::Cn,
                 app_id: "1".to_string(),
                 version: "1.0.0".to_string(),
