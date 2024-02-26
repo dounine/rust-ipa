@@ -4,4 +4,4 @@ pub mod create;
 pub mod versions;
 pub mod latest_version;
 pub mod search;
-pub mod app_configure;
+pub mod cfg;

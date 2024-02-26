@@ -1,7 +1,4 @@
 use actix_web::web::{scope, ServiceConfig};
-use serde::{Deserialize, Serialize};
-
-use migration::sea_orm::TransactionTrait;
 
 use crate::app::{create, dump, latest_version, lists, search, versions};
 

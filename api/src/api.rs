@@ -38,13 +38,6 @@ async fn home() -> impl Responder {
     HttpResponse::Ok().body(content)
 }
 
-fn init_router(cfg: &mut ServiceConfig) {
-    cfg.configure(crate::user::configure);
-    cfg.configure(crate::app::app_configure::configure);
-    cfg.configure(crate::pay::pay_configure::configure);
-    cfg.configure(crate::pay_record::configure);
-}
-
 #[actix_web::main]
 async fn start() -> std::io::Result<()> {
     let args = Args::parse();
@@ -124,6 +117,12 @@ async fn start() -> std::io::Result<()> {
     Ok(())
 }
 
+fn init_router(cfg: &mut ServiceConfig) {
+    cfg.configure(crate::user::configure);
+    cfg.configure(crate::app::cfg::configure);
+    cfg.configure(crate::pay::cfg::configure);
+    cfg.configure(crate::pay_record::configure);
+}
 pub fn main() {
     let result = start();
     if let Some(err) = result.err() {
