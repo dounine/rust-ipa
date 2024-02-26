@@ -47,8 +47,8 @@ pub async fn search(
     query: Query<SearchAppParam>,
 ) -> Result<HttpResponse, ApiError> {
     let (search_apps, db_apps) = try_join!(
-        service::app::search_by_name(&state.conn, &query.country, query.name.as_str()),
-        service::app::search_by_appids(
+        service::app::search_by_name::search_by_name(&state.conn, &query.country, query.name.as_str()),
+        service::app::search_by_appids::search_by_appids(
             &state.conn,
             &query.country,
             query.app_ids.iter().map(|x| x.as_str()).collect()

@@ -16,7 +16,7 @@ async fn versions(
 ) -> Result<HttpResponse, ApiError> {
     let (country, app_id) = query.into_inner();
     let (app_info, app_versions) = try_join!(
-        service::app::search_by_appid(&state.conn, country, app_id.as_str()),
+        service::app::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
         service::app_version::search_by_appid(&state.conn, country, app_id.as_str()),
     )?;
     Ok(resp_ok(json!({
