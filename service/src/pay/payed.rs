@@ -25,7 +25,7 @@ pub async fn payed(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
             acive_model.payed = Set(true);
             acive_model.payed_time = Set(Some(util::time::now()));
             Pay::update(acive_model).exec(&tx).await?;
-            crate::pay_record::user_coin_change(
+            crate::pay_record::coin_change::coin_change(
                 &tx,
                 info.user_id,
                 info.coin,

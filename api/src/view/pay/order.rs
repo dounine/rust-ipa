@@ -136,7 +136,7 @@ async fn wechat_pay_order(
     if time - data.time as i64 > 5 * 60 {
         return ApiError::msg("定单失效，请重新创建").into();
     }
-    let pay_menu = service::pay_menu::find_pay_menu(&state.conn, data.id)
+    let pay_menu = service::pay_menu::find::find(&state.conn, data.id)
         .await?
         .ok_or(ApiError::msg("金额不存在"))?;
     let pay_info = service::pay::create::create(

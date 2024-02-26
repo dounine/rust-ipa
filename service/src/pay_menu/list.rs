@@ -1,25 +1,12 @@
-use ::entity::PayMenu;
-use ::entity::PayMenuActiveModel;
-use ::entity::PayMenuColumn;
-use ::entity::PayMenuModel;
 use sea_orm::*;
 use tracing::instrument;
 
-#[instrument(skip(conn))]
-pub async fn create_pay_menu(
-    conn: &DbConn,
-    form_data: PayMenuModel,
-) -> Result<PayMenuModel, DbErr> {
-    let mode = PayMenuActiveModel {
-        money: Set(form_data.money),
-        coin: Set(form_data.coin),
-        ..Default::default()
-    };
-    mode.insert(conn).await
-}
+use ::entity::PayMenu;
+use ::entity::PayMenuColumn;
+use ::entity::PayMenuModel;
 
 #[instrument(skip(conn))]
-pub async fn list_pay_menu(
+pub async fn list(
     conn: &DbConn,
     offset: u64,
     limit: u64,
@@ -32,14 +19,6 @@ pub async fn list_pay_menu(
         .fetch_page(offset)
         .await
         .map(|list| (list, num_pages))
-}
-
-#[instrument(skip(conn))]
-pub async fn find_pay_menu(conn: &DbConn, id: i32) -> Result<Option<PayMenuModel>, DbErr> {
-    PayMenu::find()
-        .filter(PayMenuColumn::Id.eq(id))
-        .one(conn)
-        .await
 }
 
 #[cfg(test)]
@@ -61,7 +40,7 @@ mod tests {
         let conn = Database::connect(database_url)
             .await
             .expect("Cannot connect to database");
-        let (lists, total) = super::list_pay_menu(&conn, 0, 10).await.unwrap();
+        let (lists, total) = super::list(&conn, 0, 10).await.unwrap();
         assert_eq!(lists.len(), 1);
         assert_eq!(total, 1);
     }
