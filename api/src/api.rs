@@ -118,10 +118,10 @@ async fn start() -> std::io::Result<()> {
 }
 
 fn init_router(cfg: &mut ServiceConfig) {
-    cfg.configure(crate::user::configure);
+    cfg.configure(crate::user::cfg::configure);
     cfg.configure(crate::app::cfg::configure);
     cfg.configure(crate::pay::cfg::configure);
-    cfg.configure(crate::pay_record::configure);
+    cfg.configure(crate::pay_record::cfg::configure);
 }
 pub fn main() {
     let result = start();
