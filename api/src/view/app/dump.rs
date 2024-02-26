@@ -52,7 +52,7 @@ pub async fn dump_app(
     if user_dump_today.len() >= 10 {
         return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
     }
-    let app_version = service::app_version::search_by_appid_and_version(
+    let app_version = service::app_version::search_by_appid_and_version::search_by_appid_and_version(
         &state.conn,
         data.country.clone(),
         data.app_id.as_str(),

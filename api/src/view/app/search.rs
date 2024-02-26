@@ -1,5 +1,5 @@
-use actix_web::{get, HttpResponse};
 use actix_web::web::{Data, Query};
+use actix_web::{get, HttpResponse};
 use serde::{Deserialize, Serialize};
 use tokio::try_join;
 use tracing::instrument;
@@ -18,6 +18,7 @@ struct SearchAppParam {
     #[serde(deserialize_with = "deserialize_strings_split")]
     app_ids: Vec<String>,
 }
+
 #[derive(Serialize, Debug)]
 struct AppInfo {
     name: String,
@@ -32,6 +33,7 @@ struct AppInfo {
     genres: String,
     single: bool,
 }
+
 #[derive(Serialize, Debug)]
 struct SearchApp {
     app_id: String,
@@ -47,7 +49,11 @@ pub async fn search(
     query: Query<SearchAppParam>,
 ) -> Result<HttpResponse, ApiError> {
     let (search_apps, db_apps) = try_join!(
-        service::app::search_by_name::search_by_name(&state.conn, &query.country, query.name.as_str()),
+        service::app::search_by_name::search_by_name(
+            &state.conn,
+            &query.country,
+            query.name.as_str()
+        ),
         service::app::search_by_appids::search_by_appids(
             &state.conn,
             &query.country,
@@ -66,9 +72,12 @@ pub async fn search(
         }
     });
 
-    let version_list =
-        service::app_version::search_by_appids(&state.conn, query.country.clone(), apps.clone())
-            .await?;
+    let version_list = service::app_version::search_by_appids::search_by_appids(
+        &state.conn,
+        query.country.clone(),
+        apps.clone(),
+    )
+    .await?;
     let mut app_infos: Vec<SearchApp> = vec![];
     apps.iter().for_each(|appid| {
         match search_apps

@@ -1,5 +1,5 @@
-use actix_web::{get, HttpResponse};
 use actix_web::web::{Data, Path};
+use actix_web::{get, HttpResponse};
 use serde_json::json;
 use tokio::try_join;
 use tracing::instrument;
@@ -21,7 +21,11 @@ pub async fn latest_version(
     let (country, app_id) = query.into_inner();
     let (app_info, latest_version, app_version_dump, user_dump) = try_join!(
         service::app::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
-        service::app_version::latest_version_by_appid(&state.conn, country, app_id.as_str()),
+        service::app_version::latest_version_by_appid::latest_version_by_appid(
+            &state.conn,
+            country,
+            app_id.as_str()
+        ),
         service::dump::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
         service::user_dump::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
     )?;

@@ -4,8 +4,6 @@ use tracing::instrument;
 use ::entity::app::AppCountry;
 use ::entity::app_version::NewModel;
 use ::entity::AppVersion;
-use ::entity::AppVersionColumn;
-use ::entity::AppVersionModel;
 use util::sql::{Sql, SqlTrait};
 
 #[instrument(skip(conn))]
@@ -59,66 +57,13 @@ pub async fn search_by_appids(
         .all(conn)
         .await
 }
-#[instrument(skip(conn))]
-pub async fn search_by_appid(
-    conn: &DbConn,
-    country: AppCountry,
-    app_id: &str,
-) -> Result<Vec<AppVersionModel>, DbErr> {
-    AppVersion::find()
-        .filter(
-            AppVersionColumn::Country
-                .eq(country)
-                .and(AppVersionColumn::AppId.eq(app_id)),
-        )
-        .order_by_desc(AppVersionColumn::CreatedAt)
-        .all(conn)
-        .await
-}
-
-#[instrument(skip(conn))]
-pub async fn search_by_appid_and_version(
-    conn: &DbConn,
-    country: AppCountry,
-    app_id: &str,
-    version: &str,
-) -> Result<Option<AppVersionModel>, DbErr> {
-    AppVersion::find()
-        .filter(
-            AppVersionColumn::Country
-                .eq(country)
-                .and(AppVersionColumn::AppId.eq(app_id))
-                .and(AppVersionColumn::Version.eq(version)),
-        )
-        .order_by_desc(AppVersionColumn::CreatedAt)
-        .one(conn)
-        .await
-}
-
-#[instrument(skip(conn))]
-pub async fn latest_version_by_appid(
-    conn: &DbConn,
-    country: AppCountry,
-    app_id: &str,
-) -> Result<Option<AppVersionModel>, DbErr> {
-    AppVersion::find()
-        .filter(
-            AppVersionColumn::Country
-                .eq(country)
-                .and(AppVersionColumn::AppId.eq(app_id)),
-        )
-        .order_by_desc(AppVersionColumn::CreatedAt)
-        .limit(1)
-        .one(conn)
-        .await
-}
 
 #[cfg(test)]
 mod tests {
     use std::env;
 
     use sea_orm::Database;
-    use tracing::{info};
+    use tracing::info;
 
     use entity::app::AppCountry;
 
@@ -143,3 +88,4 @@ mod tests {
         assert_eq!(lists.len(), 1);
     }
 }
+
