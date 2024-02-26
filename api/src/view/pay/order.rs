@@ -1,79 +1,26 @@
-use crate::base::config::Config;
-use actix_web::http::StatusCode;
-use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
-use actix_web::{get, post, HttpResponse, Responder};
-use cached::proc_macro::cached;
-use cached::TimedSizedCache;
+use std::io::Cursor;
+
+use actix_web::{get, HttpResponse, post, Responder};
+use actix_web::web::{Data, Json};
 use image::{DynamicImage, GenericImageView, Luma, Pixel, Rgba};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use service::sea_orm::DbConn;
-use std::io::Cursor;
-use tracing::{debug, error, instrument};
-use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo, WechatPayNotify};
-use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
+use tracing::{debug, instrument};
+use wechat_pay_rust_sdk::model::{H5Params, H5SceneInfo};
+use wechat_pay_rust_sdk::pay::WechatPay;
 
+use crate::base::config::Config;
 use crate::base::error::ApiError;
 use crate::base::response::resp_ok;
 use crate::base::state::AppState;
 use crate::base::token::UserData;
-
-#[post("/wechat/notify")]
-#[instrument(skip(state))]
-async fn wechat_notify(
-    state: Data<AppState>,
-    data: Json<WechatPayNotify>,
-) -> Result<HttpResponse, ApiError> {
-    let data = data.into_inner();
-    let nonce = data.resource.nonce;
-    let ciphertext = data.resource.ciphertext;
-    let associated_data = data
-        .resource
-        .associated_data
-        .ok_or(ApiError::msg("associated_data is none".to_string()))?;
-    dotenvy::dotenv().ok();
-    let wechat_pay = WechatPay::from_env();
-    let result = wechat_pay
-        .decrypt_paydata(
-            ciphertext,      //加密数据
-            nonce,           //随机串
-            associated_data, //关联数据
-        )
-        .map_err(|e| ApiError::msg(e.to_string()))?;
-    debug!("pay notify decrypt result: {:?}", result);
-    match service::pay::change_payed_status(&state.conn, result.out_trade_no).await {
-        Ok(_) => Ok(HttpResponse::Ok().status(StatusCode::NO_CONTENT).finish()),
-        Err(e) => {
-            error!("change_payed_status error: {:?}", e);
-            let status500 = StatusCode::INTERNAL_SERVER_ERROR;
-            Ok(HttpResponse::Ok().status(status500).finish())
-        }
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct PayParams {
     id: i32,
     time: u64,
     sign: String,
-}
-
-#[get("menus")]
-#[instrument(skip(state))]
-async fn pay_menus(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
-    let (menus, _) = service::pay_menu::list_pay_menu(&state.conn, 0, 100).await?;
-    let menus = menus
-        .into_iter()
-        .map(|x| {
-            json!( {
-                "id": x.id,
-                "money": x.money,
-                "coin": x.coin,
-            })
-        })
-        .collect::<Vec<_>>();
-    Ok(resp_ok(menus).into())
 }
 
 #[get("/png")]
@@ -233,53 +180,4 @@ async fn wechat_pay_order(
         "pay_url": weixin_url,
     }))
     .into())
-}
-
-#[cached(
-    result = true,
-    convert = r#"{ s.to_string() }"#,
-    create = r#"{ TimedSizedCache::with_size_and_lifespan(3, 3) }"#,
-    type = r#"TimedSizedCache<String, String>"#
-)]
-async fn only_cached_a_second(s: String, _conn: &DbConn) -> Result<String, ApiError> {
-    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-    Ok(s + &now)
-}
-
-#[get("/cache/{key}")]
-#[instrument(skip(_state))]
-async fn cache_test(_state: Data<AppState>, key: Path<String>) -> Result<HttpResponse, ApiError> {
-    let key = key.into_inner();
-    cached_for_string_key(key)
-        .await
-        .map(|x| resp_ok(x).into())
-        .map(Ok)?
-}
-
-#[cached(
-    result = true,
-    key = "String",
-    time = 3,
-    size = 3,
-    convert = r#"{ format!("{}",s) }"#
-)]
-async fn cached_for_string_key(s: String) -> Result<String, ApiError> {
-    let now = chrono::Local::now().format("%Y-%m-%d %H:%M:%S").to_string();
-    Ok(s + &now)
-}
-#[cached(result = true, key = "i32", time = 3, size = 3, convert = r#"{ k }"#)]
-async fn cached_for_string_i32(k: i32) -> Result<String, ApiError> {
-    Ok(k.to_string())
-}
-
-pub fn configure(cfg: &mut ServiceConfig) {
-    cfg.service(
-        scope("/pay")
-            .service(wechat_notify)
-            .service(wechat_pay_order)
-            .service(cache_test)
-            .service(png)
-            .service(watermark)
-            .service(pay_menus),
-    );
 }
