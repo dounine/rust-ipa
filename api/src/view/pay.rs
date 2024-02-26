@@ -4,7 +4,7 @@ use actix_web::web::{scope, Data, Json, Path, ServiceConfig};
 use actix_web::{get, post, HttpResponse, Responder};
 use cached::proc_macro::cached;
 use cached::TimedSizedCache;
-use image::{DynamicImage, GenericImageView, ImageFormat, Luma, Pixel, Rgba};
+use image::{DynamicImage, GenericImageView, Luma, Pixel, Rgba};
 use qrcode::QrCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -247,8 +247,8 @@ async fn only_cached_a_second(s: String, _conn: &DbConn) -> Result<String, ApiEr
 }
 
 #[get("/cache/{key}")]
-#[instrument(skip(state))]
-async fn cache_test(state: Data<AppState>, key: Path<String>) -> Result<HttpResponse, ApiError> {
+#[instrument(skip(_state))]
+async fn cache_test(_state: Data<AppState>, key: Path<String>) -> Result<HttpResponse, ApiError> {
     let key = key.into_inner();
     cached_for_string_key(key)
         .await
