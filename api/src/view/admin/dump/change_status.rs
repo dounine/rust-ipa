@@ -22,7 +22,7 @@ struct DumpFinishParam {
 // 修改应用dump状态为完成
 #[patch("/dump/change_status")]
 #[instrument(skip(state))]
-async fn dump_change_status(
+pub async fn change_status(
     state: Data<AppState>,
     _admin_user_data: AdminUserData,
     query: Json<DumpFinishParam>,
@@ -53,7 +53,7 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
         let app = App::new()
-            .service(scope("/admin/app").service(super::dump_change_status))
+            .service(scope("/admin/app").service(super::change_status))
             .app_data(Data::new(AppState::new().await));
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::patch()

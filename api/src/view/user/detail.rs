@@ -9,7 +9,7 @@ use crate::base::token::UserData;
 
 #[get("/{id}")]
 #[instrument(skip(state))]
-async fn user_detail(
+async fn detail(
     state: Data<AppState>,
     user: UserData,
     id: Path<i32>,

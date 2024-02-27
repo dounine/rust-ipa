@@ -8,9 +8,9 @@ use wechat_pay_rust_sdk::pay::{PayNotifyTrait, WechatPay};
 use crate::base::error::ApiError;
 use crate::base::state::AppState;
 
-#[post("/wechat/notify")]
+#[post("/weixin/notify")]
 #[instrument(skip(state))]
-async fn wechat_notify(
+pub async fn weixin(
     state: Data<AppState>,
     data: Json<WechatPayNotify>,
 ) -> Result<HttpResponse, ApiError> {

@@ -9,7 +9,7 @@ use crate::base::state::AppState;
 
 #[get("menu")]
 #[instrument(skip(state))]
-async fn pay_menu(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
+async fn menu(state: Data<AppState>) -> Result<HttpResponse, ApiError> {
     let (menus, _) = service::pay_menu::query_by_page::query_by_page(&state.conn, 0, 100).await?;
     let menus = menus
         .into_iter()

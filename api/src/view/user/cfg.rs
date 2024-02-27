@@ -40,7 +40,7 @@ pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
         scope("/user")
             .service(user_list)
-            .service(detail::user_detail)
+            .service(detail::detail)
             .service(login::user_login),
     );
 }

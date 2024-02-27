@@ -31,7 +31,7 @@ pub struct DumpParam {
 
 #[post("dump")]
 #[instrument(skip(state))]
-pub async fn dump_app(
+pub async fn add(
     state: Data<AppState>,
     user_data: UserData,
     data: Json<DumpParam>,
@@ -124,10 +124,11 @@ mod tests {
     use actix_web::{test, App};
     use tracing::debug;
 
-    use crate::app::dump;
+    use crate::app::add_dump;
     use entity::app::AppCountry;
 
     use crate::base::state::AppState;
+    use crate::dump::add;
 
     #[tokio::test]
     async fn test_dump() {
@@ -136,12 +137,12 @@ mod tests {
             .with_max_level(tracing::Level::DEBUG)
             .init();
         let app = App::new()
-            .service(scope("/app").service(super::dump_app))
+            .service(scope("/app").service(super::add))
             .app_data(Data::new(AppState::new().await));
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::post()
             .uri("/app/dump")
-            .set_json(dump::DumpParam {
+            .set_json(add::DumpParam {
                 country: AppCountry::Cn,
                 app_id: "1".to_string(),
                 version: "1.0.0".to_string(),

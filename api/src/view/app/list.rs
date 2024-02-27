@@ -9,7 +9,7 @@ use crate::view::base::PageOptions;
 
 #[get("")]
 #[instrument(skip(state))]
-async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, ApiError> {
+async fn list(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, ApiError> {
     let page = page.format();
     service::app::query_by_page::query_by_page(&state.conn, page.offset, page.limit)
         .await

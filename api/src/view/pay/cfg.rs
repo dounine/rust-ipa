@@ -51,11 +51,11 @@ async fn cached_for_string_i32(k: i32) -> Result<String, ApiError> {
 pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
         scope("/pay")
-            .service(notify::wechat_notify)
-            .service(order::wechat_pay_order)
+            .service(notify::weixin)
+            .service(order::weixin)
             .service(cache_test)
             .service(order::png)
             .service(order::watermark)
-            .service(menu::pay_menu),
+            .service(menu::menu),
     );
 }

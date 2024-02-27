@@ -105,9 +105,9 @@ async fn watermark(_state: Data<AppState>) -> impl Responder {
         .body(buf.into_inner())
 }
 
-#[post("/wechat/order")]
+#[post("/weixin/order")]
 #[instrument(skip(state, req))]
-async fn wechat_pay_order(
+async fn weixin(
     state: Data<AppState>,
     data: Json<PayParams>,
     user: UserData,
@@ -147,7 +147,7 @@ async fn wechat_pay_order(
         pay_menu.coin,
     )
     .await?;
-    let wechat_pay = WechatPay::from_env();
+    let weixin = WechatPay::from_env();
     let config = Config::from_env()?;
     let _conn = &state.conn;
     let money: f32 = (pay_menu.money / 100) as f32;
@@ -162,12 +162,12 @@ async fn wechat_pay_order(
             config.wechat_referrer.as_str(),
         ),
     );
-    let result = wechat_pay
+    let result = weixin
         .h5_pay(pay_params)
         .await
         .map_err(|e| ApiError::msg(e.to_string()))?;
     let h5_url = result.h5_url.ok_or(ApiError::msg("支付失败".to_string()))?;
-    let weixin_url = wechat_pay
+    let weixin_url = weixin
         .get_weixin(h5_url, config.wechat_referrer)
         .await
         .map_err(|e| ApiError::msg(e.to_string()))?

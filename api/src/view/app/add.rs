@@ -8,7 +8,7 @@ use crate::base::state::AppState;
 
 #[post("")]
 #[instrument(skip(state))]
-async fn create(
+async fn add(
     state: Data<AppState>,
     form: Json<entity::AppModel>,
 ) -> Result<HttpResponse, ApiError> {

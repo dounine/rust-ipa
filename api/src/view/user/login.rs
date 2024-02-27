@@ -19,7 +19,7 @@ struct LoginData {
 
 #[post("/login")]
 #[instrument(skip(state))]
-async fn user_login(
+pub async fn user_login(
     state: Data<AppState>,
     data: Json<LoginData>,
 ) -> Result<HttpResponse, ApiError> {
