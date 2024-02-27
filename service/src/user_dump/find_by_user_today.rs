@@ -6,7 +6,7 @@ use ::entity::UserDumpColumn;
 use ::entity::UserDumpModel;
 
 #[instrument(skip(conn))]
-pub async fn search_by_user_today(
+pub async fn find_by_user_today(
     conn: &DbConn,
     user_id: i32,
 ) -> Result<Vec<UserDumpModel>, DbErr> {

@@ -8,7 +8,7 @@ use std::fmt::Debug;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn change_status<S>(
+pub async fn update_status<S>(
     conn: &DbConn,
     country: AppCountry,
     app_id: S,

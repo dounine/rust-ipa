@@ -5,7 +5,7 @@ use ::entity::app::AppCountry;
 use ::entity::UserDumpActiveModel;
 
 #[instrument(skip(conn))]
-pub async fn create(
+pub async fn add(
     conn: &DatabaseTransaction,
     country: AppCountry,
     app_id: &str,

@@ -8,7 +8,7 @@ use ::entity::DumpColumn;
 use ::entity::DumpModel;
 
 #[instrument(skip(conn))]
-pub async fn create(conn: &DatabaseTransaction, data: DumpModel) -> Result<(), DbErr> {
+pub async fn add(conn: &DatabaseTransaction, data: DumpModel) -> Result<(), DbErr> {
     let data = DumpActiveModel {
         country: Set(data.country),
         app_id: Set(data.app_id),

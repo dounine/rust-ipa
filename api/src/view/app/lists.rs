@@ -11,7 +11,7 @@ use crate::view::base::PageOptions;
 #[instrument(skip(state))]
 async fn lists(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, ApiError> {
     let page = page.format();
-    service::app::list::list(&state.conn, page.offset, page.limit)
+    service::app::query_by_page::query_by_page(&state.conn, page.offset, page.limit)
         .await
         .map(|(l, total)| resp_list(l, total))
         .map(|l| HttpResponse::Ok().json(l))

@@ -8,7 +8,7 @@ use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn search_by_appids<S>(
+pub async fn query_by_appids<S>(
     conn: &DbConn,
     country: &AppCountry,
     app_ids: Vec<S>,

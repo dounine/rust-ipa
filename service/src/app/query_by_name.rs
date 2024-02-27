@@ -8,7 +8,7 @@ use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn search_by_name<S>(
+pub async fn query_by_name<S>(
     conn: &DbConn,
     country: &AppCountry,
     name: S,

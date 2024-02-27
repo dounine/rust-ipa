@@ -5,7 +5,7 @@ use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn create(conn: &DbConn, form_data: AppModel) -> Result<(), DbErr> {
+pub async fn add(conn: &DbConn, form_data: AppModel) -> Result<(), DbErr> {
     let model = AppActiveModel {
         app_id: Set("1".to_owned()),
         country: Set(AppCountry::Cn),

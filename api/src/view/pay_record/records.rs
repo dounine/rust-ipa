@@ -16,7 +16,7 @@ async fn records(
     page: Query<PageOptions>,
 ) -> Result<HttpResponse, ApiError> {
     let PageOptions { offset, limit } = page.format();
-    service::pay_record::list::list(&state.conn, user_data.id, offset, limit)
+    service::pay_record::query_by_user_and_page::query_by_user_and_page(&state.conn, user_data.id, offset, limit)
         .await
         .map(|(l, total)| resp_list(l, total).into())
         .map(Ok)?

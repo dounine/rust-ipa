@@ -10,7 +10,7 @@ use entity::pay_record::PayRecordType;
 use crate::error::ServiceError;
 
 #[instrument(skip(conn))]
-pub async fn payed(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
+pub async fn update_payed_status(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
     let tx = conn.begin().await?;
     let pay_info = Pay::find()
         .filter(PayColumn::Id.eq(pay_id))
@@ -25,7 +25,7 @@ pub async fn payed(conn: &DbConn, pay_id: String) -> Result<(), ServiceError> {
             acive_model.payed = Set(true);
             acive_model.payed_time = Set(Some(util::time::now()));
             Pay::update(acive_model).exec(&tx).await?;
-            crate::pay_record::coin_change::coin_change(
+            crate::pay_record::update_coin::update_coin(
                 &tx,
                 info.user_id,
                 info.coin,
@@ -44,8 +44,8 @@ mod tests {
     use tracing::debug;
 
     use crate::error::ServiceError;
-    use crate::pay::create::create;
-    use crate::pay::payed::payed;
+    use crate::pay::add::add;
+    use crate::pay::update_payed_status::update_payed_status;
 
     /// 测试创建订单
     #[tokio::test]
@@ -56,10 +56,10 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = create(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
+        let pay_info = add(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
         debug!("pay_id: {:?}", pay_info);
         let pay_id = pay_info.id.unwrap();
-        payed(&conn, pay_id).await
+        update_payed_status(&conn, pay_id).await
     }
 
     /// 测试订单不存在
@@ -72,7 +72,7 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        payed(&conn, "-1".to_string())
+        update_payed_status(&conn, "-1".to_string())
             .await
             .unwrap();
     }
@@ -87,15 +87,15 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = create(&conn, 1, super::PayPlatform::Wechat, 1, 1)
+        let pay_info = add(&conn, 1, super::PayPlatform::Wechat, 1, 1)
             .await
             .unwrap();
         debug!("pay_info: {:?}", pay_info);
         let pay_id = pay_info.id.unwrap();
-        payed(&conn, pay_id.clone())
+        update_payed_status(&conn, pay_id.clone())
             .await
             .unwrap();
-        payed(&conn, pay_id).await.unwrap();
+        update_payed_status(&conn, pay_id).await.unwrap();
     }
 }
 

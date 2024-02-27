@@ -7,7 +7,7 @@ use ::entity::UserDumpColumn;
 use ::entity::UserDumpModel;
 
 #[instrument(skip(conn))]
-pub async fn search_by_user(
+pub async fn find_by_user(
     conn: &DbConn,
     country: AppCountry,
     app_id: &str,

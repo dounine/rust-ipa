@@ -7,16 +7,18 @@ use ::entity::DumpColumn;
 use ::entity::DumpModel;
 
 #[instrument(skip(conn))]
-pub async fn search_by_appid(
+pub async fn find(
     conn: &DbConn,
     country: AppCountry,
     app_id: &str,
+    version: &str,
 ) -> Result<Option<DumpModel>, DbErr> {
     Dump::find()
         .filter(
             DumpColumn::Country
                 .eq(country)
-                .and(DumpColumn::AppId.eq(app_id)),
+                .and(DumpColumn::AppId.eq(app_id))
+                .and(DumpColumn::Version.eq(version)),
         )
         .one(conn)
         .await

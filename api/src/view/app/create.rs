@@ -12,7 +12,7 @@ async fn create(
     state: Data<AppState>,
     form: Json<entity::AppModel>,
 ) -> Result<HttpResponse, ApiError> {
-    service::app::create::create(&state.conn, form.into_inner())
+    service::app::add::add(&state.conn, form.into_inner())
         .await
         .map(|_| resp_ok_empty())
         .map(|l| HttpResponse::Ok().json(l))

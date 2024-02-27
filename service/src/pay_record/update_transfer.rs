@@ -1,5 +1,5 @@
-use sea_orm::*;
 use sea_orm::sea_query::OnConflict;
+use sea_orm::*;
 use tracing::instrument;
 
 use ::entity::pay_record::PayRecordType;
@@ -8,7 +8,7 @@ use ::entity::PayRecordActiveModel;
 use ::entity::PayRecordColumn;
 
 #[instrument(skip(conn))]
-pub async fn transfer(
+pub async fn update_transfer(
     conn: &DbConn,
     from_user_id: i32,
     to_user_id: i32,
@@ -49,4 +49,3 @@ pub async fn transfer(
     tx.commit().await?;
     Ok(())
 }
-

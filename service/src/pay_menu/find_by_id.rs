@@ -6,7 +6,7 @@ use ::entity::PayMenuColumn;
 use ::entity::PayMenuModel;
 
 #[instrument(skip(conn))]
-pub async fn find(conn: &DbConn, id: i32) -> Result<Option<PayMenuModel>, DbErr> {
+pub async fn find_by_id(conn: &DbConn, id: i32) -> Result<Option<PayMenuModel>, DbErr> {
     PayMenu::find()
         .filter(PayMenuColumn::Id.eq(id))
         .one(conn)

@@ -21,6 +21,6 @@ async fn transfer(
     service::user::find_by_id::find_by_id(&state.conn, to_user_id)
         .await?
         .ok_or_else(|| ApiError::msg("转帐目标用户不存在".to_string()))?;
-    service::pay_record::transfer::transfer(&state.conn, user_data.id, to_user_id, coin).await?;
+    service::pay_record::update_transfer::update_transfer(&state.conn, user_data.id, to_user_id, coin).await?;
     Ok(resp_ok_empty().into())
 }

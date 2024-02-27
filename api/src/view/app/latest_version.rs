@@ -20,14 +20,14 @@ pub async fn latest_version(
 ) -> Result<HttpResponse, ApiError> {
     let (country, app_id) = query.into_inner();
     let (app_info, latest_version, app_version_dump, user_dump) = try_join!(
-        service::app::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
-        service::app_version::latest_version_by_appid::latest_version_by_appid(
+        service::app::find_by_appid::find_by_appid(&state.conn, country, app_id.as_str()),
+        service::app_version::find_latest_version_by_appid::find_latest_version_by_appid(
             &state.conn,
             country,
             app_id.as_str()
         ),
-        service::dump::search_by_appid::search_by_appid(&state.conn, country, app_id.as_str()),
-        service::user_dump::search_by_user::search_by_user(&state.conn, country, app_id.as_str(), user_data.id),
+        service::dump::find_by_appid::find_by_appid(&state.conn, country, app_id.as_str()),
+        service::user_dump::find_by_user::find_by_user(&state.conn, country, app_id.as_str(), user_data.id),
     )?;
     Ok(resp_ok(json!({
         "app_info": app_info,

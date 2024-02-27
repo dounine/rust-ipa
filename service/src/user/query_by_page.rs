@@ -6,7 +6,7 @@ use ::entity::UserColumn;
 use ::entity::UserModel;
 
 #[instrument(skip(conn))]
-pub async fn list(
+pub async fn query_by_page(
     conn: &DbConn,
     offset: u64,
     limit: u64,

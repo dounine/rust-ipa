@@ -6,7 +6,7 @@ use sea_orm::*;
 use tracing::instrument;
 
 #[instrument(skip(conn))]
-pub async fn search_by_appid(
+pub async fn find_by_appid(
     conn: &DbConn,
     country: AppCountry,
     app_id: &str,

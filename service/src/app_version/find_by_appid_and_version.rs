@@ -7,7 +7,7 @@ use ::entity::AppVersionColumn;
 use ::entity::AppVersionModel;
 
 #[instrument(skip(conn))]
-pub async fn search_by_appid_and_version(
+pub async fn find_by_appid_and_version(
     conn: &DbConn,
     country: AppCountry,
     app_id: &str,

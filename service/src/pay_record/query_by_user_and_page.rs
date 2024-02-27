@@ -7,7 +7,7 @@ use ::entity::PayRecordModel;
 
 /// 用户金币记录
 #[instrument(skip(conn))]
-pub async fn list(
+pub async fn query_by_user_and_page(
     conn: &DbConn,
     user_id: i32,
     offset: u64,

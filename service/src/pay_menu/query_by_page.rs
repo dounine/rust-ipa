@@ -6,7 +6,7 @@ use ::entity::PayMenuColumn;
 use ::entity::PayMenuModel;
 
 #[instrument(skip(conn))]
-pub async fn list(
+pub async fn query_by_page(
     conn: &DbConn,
     offset: u64,
     limit: u64,
@@ -40,7 +40,7 @@ mod tests {
         let conn = Database::connect(database_url)
             .await
             .expect("Cannot connect to database");
-        let (lists, total) = super::list(&conn, 0, 10).await.unwrap();
+        let (lists, total) = super::query_by_page(&conn, 0, 10).await.unwrap();
         assert_eq!(lists.len(), 1);
         assert_eq!(total, 1);
     }

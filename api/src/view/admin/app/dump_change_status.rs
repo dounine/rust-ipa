@@ -20,7 +20,7 @@ struct DumpFinishParam {
 }
 
 // 修改应用dump状态为完成
-#[patch("/change_status")]
+#[patch("/dump/change_status")]
 #[instrument(skip(state))]
 async fn dump_change_status(
     state: Data<AppState>,
@@ -33,7 +33,7 @@ async fn dump_change_status(
         version,
         status,
     } = query.into_inner();
-    service::admin::dump::change_status::change_status(&state.conn, country, app_id, version, status).await?;
+    service::admin::dump::update_status::update_status(&state.conn, country, app_id, version, status).await?;
     Ok(resp_ok_empty().into())
 }
 
@@ -57,7 +57,7 @@ mod tests {
             .app_data(Data::new(AppState::new().await));
         let mut app = test::init_service(app).await;
         let req = test::TestRequest::patch()
-            .uri("/admin/app/change_status")
+            .uri("/admin/app/dump/change_status")
             .set_json(super::DumpFinishParam {
                 country: AppCountry::Cn,
                 app_id: "1".to_string(),

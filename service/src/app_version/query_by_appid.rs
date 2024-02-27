@@ -7,11 +7,11 @@ use ::entity::AppVersionColumn;
 use ::entity::AppVersionModel;
 
 #[instrument(skip(conn))]
-pub async fn latest_version_by_appid(
+pub async fn query_by_appid(
     conn: &DbConn,
     country: AppCountry,
     app_id: &str,
-) -> Result<Option<AppVersionModel>, DbErr> {
+) -> Result<Vec<AppVersionModel>, DbErr> {
     AppVersion::find()
         .filter(
             AppVersionColumn::Country
@@ -19,7 +19,6 @@ pub async fn latest_version_by_appid(
                 .and(AppVersionColumn::AppId.eq(app_id)),
         )
         .order_by_desc(AppVersionColumn::CreatedAt)
-        .limit(1)
-        .one(conn)
+        .all(conn)
         .await
 }

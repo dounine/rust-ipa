@@ -17,7 +17,7 @@ async fn user_list(
 ) -> Result<HttpResponse, ApiError> {
     debug!("进去store查询数据中...");
     let page = page.format();
-    service::user::list::list(&state.conn, page.offset, page.limit)
+    service::user::query_by_page::query_by_page(&state.conn, page.offset, page.limit)
         .await
         .map(|(l, total)| resp_list(l, total).into())
         .map(Ok)?

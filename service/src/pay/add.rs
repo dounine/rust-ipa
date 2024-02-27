@@ -10,7 +10,7 @@ use ::entity::PayModel;
 
 // 创建订单
 #[instrument(skip(conn))]
-pub async fn create(
+pub async fn add(
     conn: &DbConn,
     user_id: i32,
     platform: PayPlatform,

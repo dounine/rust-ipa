@@ -6,7 +6,7 @@ use ::entity::PayRecordActiveModel;
 
 /// 用户金币变动
 #[instrument(skip(conn))]
-pub async fn coin_change(
+pub async fn update_coin(
     conn: &DatabaseTransaction,
     user_id: i32,
     coin: i32,

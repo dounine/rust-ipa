@@ -5,7 +5,7 @@ use ::entity::PayMenuActiveModel;
 use ::entity::PayMenuModel;
 
 #[instrument(skip(conn))]
-pub async fn create(
+pub async fn add(
     conn: &DbConn,
     form_data: PayMenuModel,
 ) -> Result<PayMenuModel, DbErr> {

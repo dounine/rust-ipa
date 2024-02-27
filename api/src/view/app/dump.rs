@@ -37,7 +37,7 @@ pub async fn dump_app(
     data: Json<DumpParam>,
 ) -> Result<HttpResponse, ApiError> {
     let data = data.into_inner();
-    let user_dump_info = service::user_dump::search_by_user::search_by_user(
+    let user_dump_info = service::user_dump::find_by_user::find_by_user(
         &state.conn,
         data.country.clone(),
         data.app_id.as_str(),
@@ -48,13 +48,13 @@ pub async fn dump_app(
         return ApiError::msg("您已经提交提取请求，请勿重复提取").into();
     }
     let user_dump_today =
-        service::user_dump::search_by_user_today::search_by_user_today(&state.conn, user_data.id)
+        service::user_dump::find_by_user_today::find_by_user_today(&state.conn, user_data.id)
             .await?;
     if user_dump_today.len() >= 10 {
         return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
     }
     let app_version =
-        service::app_version::search_by_appid_and_version::search_by_appid_and_version(
+        service::app_version::find_by_appid_and_version::find_by_appid_and_version(
             &state.conn,
             data.country.clone(),
             data.app_id.as_str(),
@@ -62,7 +62,7 @@ pub async fn dump_app(
         )
         .await?;
     if app_version.is_none() {
-        if let Some(latest_dump_info) = service::dump::search_info::search_info(
+        if let Some(latest_dump_info) = service::dump::find::find(
             &state.conn,
             data.country.clone(),
             data.app_id.as_str(),
@@ -79,7 +79,7 @@ pub async fn dump_app(
             }
         }
     }
-    let user_coins = service::pay_record::coin_sum::coin_sum(&state.conn, user_data.id).await?;
+    let user_coins = service::pay_record::find_coin_balance::find_coin_balance(&state.conn, user_data.id).await?;
     if user_coins.is_none() || user_coins.unwrap() < 1 {
         //放后面付费率会下降
         return ApiError::msg("为防止人机恶意提取，每次提取应用需要0.01个金币，请购买后再提取。")
@@ -87,9 +87,9 @@ pub async fn dump_app(
     }
 
     let tx = state.conn.begin().await?;
-    service::pay_record::coin_change::coin_change(&tx, user_data.id, 1, PayRecordType::Extract)
+    service::pay_record::update_coin::update_coin(&tx, user_data.id, 1, PayRecordType::Extract)
         .await?;
-    service::user_dump::create::create(
+    service::user_dump::add::add(
         &tx,
         data.country.clone(),
         data.app_id.as_str(),
@@ -97,7 +97,7 @@ pub async fn dump_app(
         user_data.id,
     )
     .await?;
-    service::dump::create::create(
+    service::dump::add::add(
         &tx,
         DumpModel {
             country: data.country.clone(),
