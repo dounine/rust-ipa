@@ -48,7 +48,7 @@ pub async fn add(
         return ApiError::msg("您已经提交提取请求，请勿重复提取").into();
     }
     let user_dump_today =
-        service::user_dump::find_by_user_today::find_by_user_today(&state.conn, user_data.id)
+        service::user_dump::find_today_by_user::find_today_by_user(&state.conn, user_data.id)
             .await?;
     if user_dump_today.len() >= 10 {
         return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
