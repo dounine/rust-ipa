@@ -53,14 +53,13 @@ pub async fn add(
     if user_dump_today.len() >= 10 {
         return ApiError::msg("您今天已经提交了10次提取请求，请明天再来").into();
     }
-    let app_version =
-        service::app_version::find_by_appid_and_version::find_by_appid_and_version(
-            &state.conn,
-            data.country.clone(),
-            data.app_id.as_str(),
-            data.version.as_str(),
-        )
-        .await?;
+    let app_version = service::app_version::find_by_appid_and_version::find_by_appid_and_version(
+        &state.conn,
+        data.country.clone(),
+        data.app_id.as_str(),
+        data.version.as_str(),
+    )
+    .await?;
     if app_version.is_none() {
         if let Some(latest_dump_info) = service::dump::find::find(
             &state.conn,
@@ -79,7 +78,9 @@ pub async fn add(
             }
         }
     }
-    let user_coins = service::pay_record::find_coin_balance::find_coin_balance(&state.conn, user_data.id).await?;
+    let user_coins =
+        service::pay_record::find_coin_balance::find_coin_balance(&state.conn, user_data.id)
+            .await?;
     if user_coins.is_none() || user_coins.unwrap() < 1 {
         //放后面付费率会下降
         return ApiError::msg("为防止人机恶意提取，每次提取应用需要0.01个金币，请购买后再提取。")
@@ -124,7 +125,6 @@ mod tests {
     use actix_web::{test, App};
     use tracing::debug;
 
-    use crate::app::add_dump;
     use entity::app::AppCountry;
 
     use crate::base::state::AppState;

@@ -1,4 +1,5 @@
 /target
+.zed/
 *.pem
 .idea
 *.xml

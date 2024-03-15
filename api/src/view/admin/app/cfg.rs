@@ -1,4 +1,3 @@
-use actix_web::web::{ServiceConfig};
+use actix_web::web::ServiceConfig;
 
-pub fn configure(_cfg: &mut ServiceConfig) {
-}
+pub fn configure(_cfg: &mut ServiceConfig) {}

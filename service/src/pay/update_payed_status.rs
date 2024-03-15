@@ -1,7 +1,7 @@
-use sea_orm::{ColumnTrait};
-use sea_orm::{DbConn, EntityTrait, TransactionTrait};
 use sea_orm::ActiveValue::Set;
+use sea_orm::ColumnTrait;
 use sea_orm::QueryFilter;
+use sea_orm::{DbConn, EntityTrait, TransactionTrait};
 use tracing::instrument;
 
 use ::entity::{Pay, PayActiveModel, PayColumn};
@@ -40,6 +40,7 @@ pub async fn update_payed_status(conn: &DbConn, pay_id: String) -> Result<(), Se
 }
 #[cfg(test)]
 mod tests {
+    use entity::pay::PayPlatform;
     use sea_orm::Database;
     use tracing::debug;
 
@@ -56,9 +57,9 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = add(&conn, 1, super::PayPlatform::Wechat, 1, 1).await?;
+        let pay_info = add(&conn, 1, PayPlatform::Wechat, 1, 1).await?;
         debug!("pay_id: {:?}", pay_info);
-        let pay_id = pay_info.id.unwrap();
+        let pay_id = pay_info.id;
         update_payed_status(&conn, pay_id).await
     }
 
@@ -72,9 +73,7 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        update_payed_status(&conn, "-1".to_string())
-            .await
-            .unwrap();
+        update_payed_status(&conn, "-1".to_string()).await.unwrap();
     }
 
     /// 测试重复支付
@@ -87,15 +86,10 @@ mod tests {
         let conn = Database::connect(db_url)
             .await
             .expect("Cannot connect to database");
-        let pay_info = add(&conn, 1, super::PayPlatform::Wechat, 1, 1)
-            .await
-            .unwrap();
+        let pay_info = add(&conn, 1, PayPlatform::Wechat, 1, 1).await.unwrap();
         debug!("pay_info: {:?}", pay_info);
-        let pay_id = pay_info.id.unwrap();
-        update_payed_status(&conn, pay_id.clone())
-            .await
-            .unwrap();
+        let pay_id = pay_info.id;
+        update_payed_status(&conn, pay_id.clone()).await.unwrap();
         update_payed_status(&conn, pay_id).await.unwrap();
     }
 }
-

@@ -20,7 +20,7 @@ use tracing_actix_web::{RootSpan, TracingLogger};
 struct Args {
     #[arg(long, default_value = "0.0.0.0")]
     host: String,
-    #[arg(long, default_value = "8080")]
+    #[arg(long, default_value = "3000")]
     port: u16,
     #[arg(long, default_value = "debug")]
     log: LevelFilter,
