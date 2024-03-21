@@ -38,14 +38,14 @@ select appid    as app_id,
 from dumpStore;
 
 select id,
-       userid  as user_id,
+       userid                   as user_id,
        money,
        coin,
        trade_no,
        platform,
-       paytime as payed_time,
-       pay     as payed,
-       time    as created_at
+       paytime                  as payed_time,
+       if(pay = 1, true, false) as payed,
+       time                     as created_at
 from payStore;
 select id,
        userid                                                                                                                                                   as user_id,
