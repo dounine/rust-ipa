@@ -21,25 +21,8 @@ fn format_file_size<S>(size: &i64, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
-    let size = *size;
-    let kb = 1024;
-    let mb = kb * 1024;
-    let gb = mb * 1024;
-    let tb = gb * 1024;
-    let pb = tb * 1024;
-    if size < kb {
-        s.serialize_str(&format!("{} B", size))
-    } else if size < mb {
-        s.serialize_str(&format!("{:.2} KB", size as f64 / kb as f64))
-    } else if size < gb {
-        s.serialize_str(&format!("{:.2} MB", size as f64 / mb as f64))
-    } else if size < tb {
-        s.serialize_str(&format!("{:.2} GB", size as f64 / gb as f64))
-    } else if size < pb {
-        s.serialize_str(&format!("{:.2} TB", size as f64 / tb as f64))
-    } else {
-        s.serialize_str(&format!("{:.2} PB", size as f64 / pb as f64))
-    }
+    let format_str = util::file::byte_format(*size);
+    s.serialize_str(&format_str)
 }
 
 #[instrument(skip(conn))]
