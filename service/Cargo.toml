@@ -13,6 +13,7 @@ thiserror = { workspace = true }
 sea-orm = { workspace = true, features = ["sqlx-postgres", "runtime-async-std-native-tls", "debug-print"] }
 tracing = { workspace = true }
 chrono = { workspace = true }
+serde = { version = "1.0.195", features = ["derive"] }
 [dev-dependencies]
 dotenvy = { workspace = true }
 tracing = { workspace = true }

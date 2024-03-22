@@ -23,6 +23,8 @@ pub enum AppPlatform {
     //巨魔
     #[sea_orm(num_value = 2)]
     Cydia = 2, //越狱
+    #[sea_orm(num_value = 3)]
+    All = 3,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq)]

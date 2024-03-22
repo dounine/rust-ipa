@@ -21,6 +21,7 @@ qrcode = { workspace = true }
 image = { workspace = true }
 wechat-pay-rust-sdk = { workspace = true }
 actix-web = { workspace = true }
+actix-cors = { workspace = true }
 tokio = { workspace = true }
 actix-governor = { workspace = true }
 dotenvy = { workspace = true }

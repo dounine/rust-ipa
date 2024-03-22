@@ -1,3 +1,4 @@
+use actix_cors::Cors;
 use crate::base::error::ApiError;
 use crate::base::limit::RequestLimit;
 use crate::base::span::DomainRootSpanBuilder;
@@ -68,7 +69,14 @@ async fn start() -> std::io::Result<()> {
     Migrator::up(&app_state.conn, None).await.unwrap();
     let mut listened = ListenFd::from_env();
     let mut server = HttpServer::new(move || {
+        let cors = Cors::default()
+            .allow_any_origin()
+            .allow_any_method()
+            .allow_any_header()
+            .max_age(3600);
+
         App::new()
+            .wrap(cors)
             .wrap_fn(|req, srv| {
                 let fut = srv.call(req);
                 async move {

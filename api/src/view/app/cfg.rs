@@ -1,6 +1,6 @@
 use actix_web::web::{scope, ServiceConfig};
 
-use crate::app::{add, latest_version, list, search, versions};
+use crate::app::{add, hots, latest_version, list, search, versions};
 
 pub fn configure(cfg: &mut ServiceConfig) {
     cfg.service(
@@ -10,5 +10,6 @@ pub fn configure(cfg: &mut ServiceConfig) {
             .service(versions::versions)
             .service(search::search)
             .service(latest_version::latest_version)
+            .service(hots::hots)
     );
 }
