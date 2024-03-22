@@ -25,7 +25,7 @@ async fn versions(
             json!({
                 "version": v.version,
                 "size": util::file::byte_format(v.size),
-                "time": v.created_at,
+                "time": util::time::time_format(v.created_at),
             })
         })
         .collect::<Vec<_>>();
