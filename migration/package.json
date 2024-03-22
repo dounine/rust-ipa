@@ -1,0 +1,18 @@
+{
+  "name": "migration",
+  "version": "1.0.0",
+  "description": "数据库迁移转换 ```sql select appid    as app_id,        country,        name,        lname    as origin_name,        bundleId as bundle_id,        des,        icon,        platform,        price,        genres,        single,        time     as created_at from appStore; select appid as app_id,        country,        version,        des,        download,        official,        file  as download_url,        size,        time  as created_at from versionStore; select appid    as app_id,        country,        version,        name,        icon,        link,        bundleId as bundle_id,        size,        price,        status,        time     as created_at from dumpStore;",
+  "main": "copy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "knex": "^3.1.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.9.2",
+    "pg": "^8.11.3",
+    "postgres": "^3.4.4"
+  }
+}
