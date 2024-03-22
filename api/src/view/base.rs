@@ -12,7 +12,7 @@ impl PageOptions {
     pub fn format(&self) -> Self {
         Self {
             offset: self.offset.min(u64::MAX).max(0),
-            limit: self.limit.min(20).max(1),
+            limit: self.limit.min(18).max(1),
         }
     }
 }
@@ -22,7 +22,7 @@ fn offset_default() -> u64 {
 }
 
 fn limit_default() -> u64 {
-    10
+    9
 }
 
 pub fn deserialize_strings_split<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
