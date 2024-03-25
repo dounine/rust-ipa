@@ -1,14 +1,14 @@
-use actix_cors::Cors;
 use crate::base::error::ApiError;
 use crate::base::limit::RequestLimit;
 use crate::base::span::DomainRootSpanBuilder;
 use crate::base::state::AppState;
+use actix_cors::Cors;
 use actix_governor::{Governor, GovernorConfigBuilder};
 use actix_web::dev::Service;
 use actix_web::http::header::{HeaderName, HeaderValue};
 use actix_web::web::{PathConfig, QueryConfig, ServiceConfig};
-use actix_web::HttpMessage;
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use actix_web::{HttpMessage, ResponseError};
 use clap::Parser;
 use listenfd::ListenFd;
 use migration::{Migrator, MigratorTrait};
@@ -21,7 +21,7 @@ use tracing_actix_web::{RootSpan, TracingLogger};
 struct Args {
     #[arg(long, default_value = "0.0.0.0")]
     host: String,
-    #[arg(long, default_value = "3000")]
+    #[arg(long, default_value = "3001")]
     port: u16,
     #[arg(long, default_value = "debug")]
     log: LevelFilter,
@@ -62,8 +62,8 @@ async fn start() -> std::io::Result<()> {
     let app_state = actix_web::web::Data::new(AppState::new().await);
     let governor_conf = GovernorConfigBuilder::default()
         .key_extractor(RequestLimit::new())
-        .per_second(3)
-        .burst_size(10)
+        .per_second(1)
+        .burst_size(20)
         .finish()
         .unwrap();
     Migrator::up(&app_state.conn, None).await.unwrap();
@@ -110,6 +110,11 @@ async fn start() -> std::io::Result<()> {
                     .error_handler(|err, _req| ApiError::msg(err.to_string()).into()),
             )
             .wrap(TracingLogger::<DomainRootSpanBuilder>::new())
+            //404 error
+            .default_service(
+                actix_web::web::route()
+                    .to(|| async { ApiError::msg("链接不存在").error_response() }),
+            )
             .configure(init_router)
             .service(home)
     })
