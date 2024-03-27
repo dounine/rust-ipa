@@ -12,7 +12,7 @@ use crate::view::base::PageOptions;
 #[instrument(skip(state))]
 async fn hots(state: Data<AppState>, page: Query<PageOptions>) -> Result<HttpResponse, ApiError> {
     let page = page.format();
-    service::app::query_hots::query_hots(&state.conn, page.offset, page.limit)
+    service::app::query_hots::query_hots(&state.conn, page.offset, 30)
         .await
         .map(|l| resp_ok(l))
         .map(|l| HttpResponse::Ok().json(l))

@@ -15,9 +15,14 @@ async fn versions(
     query: Path<(AppCountry, String)>,
 ) -> Result<HttpResponse, ApiError> {
     let (country, app_id) = query.into_inner();
-    let (app_info, app_versions) = try_join!(
+    let (app_info, app_versions, latest_version) = try_join!(
         service::app::find_by_appid::find_by_appid(&state.conn, country, app_id.as_str()),
         service::app_version::query_by_appid::query_by_appid(&state.conn, country, app_id.as_str()),
+        service::app_version::find_latest_version_by_appid::find_latest_version_by_appid(
+            &state.conn,
+            country,
+            app_id.as_str()
+        ),
     )?;
     let app_versions = app_versions
         .into_iter()
@@ -30,9 +35,18 @@ async fn versions(
             })
         })
         .collect::<Vec<_>>();
+    let latest_version = latest_version.map(|v| {
+        json!({
+            "version": v.version,
+            "size": util::file::byte_format(v.size),
+            "time": util::time::time_format(v.created_at),
+            "created_at": v.created_at,
+        })
+    });
     Ok(resp_ok(json!({
         "info": app_info,
-        "versions": app_versions
+        "versions": app_versions,
+        "latest_version": latest_version
     }))
     .into())
 }
