@@ -26,6 +26,7 @@ async fn versions(
                 "version": v.version,
                 "size": util::file::byte_format(v.size),
                 "time": util::time::time_format(v.created_at),
+                "created_at": v.created_at,
             })
         })
         .collect::<Vec<_>>();

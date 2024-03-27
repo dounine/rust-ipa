@@ -6,3 +6,4 @@ pub mod search;
 pub mod cfg;
 pub mod hots;
 pub mod news;
+pub mod version;

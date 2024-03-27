@@ -89,7 +89,7 @@ impl MigrationTrait for Migration {
         }
         .insert(conn)
         .await?;
-        tx.commit().await?;
+        // tx.commit().await?;
         Ok(())
     }
 
