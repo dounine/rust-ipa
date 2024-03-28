@@ -8,7 +8,7 @@ use serde_json::json;
 use tokio::try_join;
 use tracing::instrument;
 
-#[get("/{country}/{app_id}/versions")]
+#[get("/versions/{country}/{app_id}")]
 #[instrument(skip(state))]
 async fn versions(
     state: Data<AppState>,

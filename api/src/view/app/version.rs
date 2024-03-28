@@ -8,7 +8,7 @@ use serde_json::json;
 use tokio::try_join;
 use tracing::instrument;
 
-#[get("/{country}/{app_id}/{version}/version_info")]
+#[get("/version_info/{country}/{app_id}/{version}")]
 #[instrument(skip(state))]
 async fn version(
     state: Data<AppState>,

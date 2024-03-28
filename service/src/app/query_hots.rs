@@ -17,6 +17,7 @@ pub struct AppItem {
     #[serde(serialize_with = "format_file_size")]
     pub size: i64,
 }
+
 fn format_file_size<S>(size: &i64, s: S) -> Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
@@ -60,9 +61,9 @@ FROM (SELECT app_id,
       FROM app_version as a
       GROUP BY app_id, country
       ORDER BY download DESC
-      OFFSET 0 LIMIT 9) dd
+      OFFSET $1 LIMIT $2) dd
          INNER JOIN app cc ON dd.app_id = cc.app_id AND dd.country = cc.country"#,
-        vec![],
+        vec![offset.into(), limit.into()],
     ))
     .all(conn)
     .await

@@ -7,3 +7,4 @@ pub mod cfg;
 pub mod hots;
 pub mod news;
 pub mod version;
+pub mod classify;
